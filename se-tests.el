@@ -1,4 +1,6 @@
 
+;; explicitly re-evaluate code
+(load-file "se-helpers.el")
 (load-file "se.el")
 
 (eval-when-compile
