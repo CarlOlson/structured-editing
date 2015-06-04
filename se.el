@@ -5,11 +5,14 @@
   `(lambda (&rest more-args)
      (apply ',f ,@args more-args)))
 
-(defmacro pop-while (lst conditional)
+(defmacro pop-from (lst when conditional)
   "Removes elements from `lst' until `conditional' is false. The
 removed elements are returned. This will modify the state of
 `lst'."
   (assert (symbolp lst))
+  (assert (member when '(while until)))
+  (if (eq when 'until)
+      (setq conditional (list 'not conditional)))
   (let ((rtn (gensym)))
     `(let ((,rtn (list nil))
 	   (head (car ,lst)))
@@ -65,6 +68,6 @@ formatted."
     (let ((parent (pop tokens)))
       (cons
        (new-node parent (sorted-tokens-to-tree
-			 (pop-while tokens (is-token-child head parent))))
+			 (pop-from tokens while (is-token-child head parent))))
        (sorted-tokens-to-tree tokens))))))
 
