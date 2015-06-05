@@ -32,24 +32,30 @@ to 100 would be before 1 to 20 because it encapsulates it."
    (<= (token-end child)
        (token-end parent))))
 
-(defun create-parse-tree (tokens)
-  "Forms a tree from token information. This will change the
+
+(lexical-let (tokens parents)
+  (defun create-parse-tree (lst)
+    "Forms a tree from token information. This will change the
 state of tokens to be sorted. Returns nil if data is ill
 formatted."
-  ;; `copy-list' could be used; however, it isn't expected a user will
-  ;; reuse a token list.
-  (let ((len (length tokens)))
-    (sort tokens 'token<)
-    (if (= (length tokens) len)
-	(sorted-tokens-to-tree tokens))))
+    ;; `copy-list' could be used; however, it isn't expected a user will
+    ;; reuse a token list (or care if it becomes sorted).
+    (setq tokens lst)
+    (setq parents lst)
+    (let ((len (length lst)))
+      (sort tokens 'token<)
+      (when (= len (length lst)) (sorted-tokens-to-tree))))
 
-(defun sorted-tokens-to-tree (tokens)
-  (cond
-   ((null tokens) nil)
-   (:else
-    (let ((parent (pop tokens)))
+  (defun sorted-tokens-to-tree ()
+    (cond
+     ((null tokens) nil)
+     ((or (null parents)
+	  (is-token-child (first tokens) (first parents)))
+      (push (pop tokens) parents)
       (cons
-       (new-node parent (sorted-tokens-to-tree
-			 (pop-from tokens while (is-token-child head parent))))
-       (sorted-tokens-to-tree tokens))))))
-
+       (new-node (first parents) (sorted-tokens-to-tree))
+       (sorted-tokens-to-tree)))
+     (:else
+      (pop parents)
+      nil)))
+  )
