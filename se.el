@@ -1,13 +1,11 @@
 
-(eval-when-compile (require 'cl))
-
-(cl-defstruct
+(defstruct
     (token
      (:constructor new-token (type start end))
      (:constructor nil-token ()))
   type start end)
 
-(cl-defstruct
+(defstruct
     (node
      (:constructor new-node (parent children))
      (:constructor nil-node ()))

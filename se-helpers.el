@@ -1,5 +1,5 @@
 
-(eval-when-compile (require 'cl))
+;; (eval-when-compile (require 'cl))
 
 (defmacro curry (f &rest args)
   `(lambda (&rest more-args)
