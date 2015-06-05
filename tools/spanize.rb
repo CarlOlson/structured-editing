@@ -10,4 +10,4 @@ end
 source = File.open(ARGV.first, "r") { |f| f.read }
 p = RubyProcessor.parse source
 
-puts p.tokens.to_json
+puts p.spans.to_json

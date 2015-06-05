@@ -1,8 +1,8 @@
 
 (defstruct
-    (token
-     (:constructor new-token (type start end))
-     (:constructor nil-token ()))
+    (span
+     (:constructor new-span (type start end))
+     (:constructor nil-span ()))
   type start end)
 
 (defstruct
@@ -11,48 +11,48 @@
      (:constructor nil-node ()))
      parent children)
 
-(defun token< (a b)
-  "Checks if token `a' should come before `b'. A token spanning 1
+(defun span< (a b)
+  "Checks if span `a' should come before `b'. A span spanning 1
 to 100 would be before 1 to 20 because it encapsulates it."
   (or
-   (< (token-start a)
-      (token-start b))
+   (< (span-start a)
+      (span-start b))
    (and
-    (= (token-start a)
-       (token-start b))
-    (> (token-end a)
-       (token-end b)))))
+    (= (span-start a)
+       (span-start b))
+    (> (span-end a)
+       (span-end b)))))
 
-(defun is-token-child (child parent)
+(defun is-span-child (child parent)
   (and
-   (>= (token-start child)
-       (token-start parent))
-   (<= (token-end child)
-       (token-end parent))))
+   (>= (span-start child)
+       (span-start parent))
+   (<= (span-end child)
+       (span-end parent))))
 
 
-(lexical-let (tokens parents)
+(lexical-let (spans parents)
   (defun create-parse-tree (lst)
-    "Forms a tree from token information. This will change the
-state of tokens to be sorted. Returns nil if data is ill
+    "Forms a tree from span information. This will change the
+state of spans to be sorted. Returns nil if data is ill
 formatted."
     ;; `copy-list' could be used; however, it isn't expected a user will
-    ;; reuse a token list (or care if it becomes sorted).
-    (setq tokens lst)
+    ;; reuse a span list (or care if it becomes sorted).
+    (setq spans lst)
     (setq parents lst)
     (let ((len (length lst)))
-      (sort tokens 'token<)
-      (when (= len (length lst)) (sorted-tokens-to-tree))))
+      (sort spans 'span<)
+      (when (= len (length lst)) (sorted-spans-to-tree))))
 
-  (defun sorted-tokens-to-tree ()
+  (defun sorted-spans-to-tree ()
     (cond
-     ((null tokens) nil)
+     ((null spans) nil)
      ((or (null parents)
-	  (is-token-child (first tokens) (first parents)))
-      (push (pop tokens) parents)
+	  (is-span-child (first spans) (first parents)))
+      (push (pop spans) parents)
       (cons
-       (new-node (first parents) (sorted-tokens-to-tree))
-       (sorted-tokens-to-tree)))
+       (new-node (first parents) (sorted-spans-to-tree))
+       (sorted-spans-to-tree)))
      (:else
       (pop parents)
       nil)))
