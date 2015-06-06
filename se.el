@@ -57,4 +57,5 @@ formatted."
     (pop parents)
     nil)))
 
-(byte-compile #'sorted-spans-to-tree)
+(let ((byte-compile-warnings '(not free-vars)))
+  (byte-compile #'sorted-spans-to-tree))
