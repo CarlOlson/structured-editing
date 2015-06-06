@@ -30,30 +30,31 @@ to 100 would be before 1 to 20 because it encapsulates it."
    (<= (span-end child)
        (span-end parent))))
 
-
-(lexical-let (spans parents)
-  (defun create-parse-tree (lst)
-    "Forms a tree from span information. This will change the
+(defun create-parse-tree (lst)
+  "Forms a tree from span information. This will change the
 state of spans to be sorted. Returns nil if data is ill
 formatted."
-    ;; `copy-list' could be used; however, it isn't expected a user will
-    ;; reuse a span list (or care if it becomes sorted).
-    (setq spans lst)
-    (setq parents lst)
-    (let ((len (length lst)))
-      (sort spans 'span<)
-      (when (= len (length lst)) (sorted-spans-to-tree))))
+  ;; `copy-list' could be used; however, it isn't expected a user will
+  ;; reuse a span list (or care if it becomes sorted).
+  (let ((spans lst)
+	(parents nil)
+	(len (length lst)))
+    (sort spans 'span<)
+    (when (= len (length lst)) (sorted-spans-to-tree))))
 
-  (defun sorted-spans-to-tree ()
-    (cond
-     ((null spans) nil)
-     ((or (null parents)
-	  (is-span-child (first spans) (first parents)))
-      (push (pop spans) parents)
-      (cons
-       (new-node (first parents) (sorted-spans-to-tree))
-       (sorted-spans-to-tree)))
-     (:else
-      (pop parents)
-      nil)))
-  )
+(byte-compile #'create-parse-tree)
+
+(defun sorted-spans-to-tree ()
+  (cond
+   ((null spans) nil)
+   ((or (null parents)
+	(is-span-child (first spans) (first parents)))
+    (push (pop spans) parents)
+    (cons
+     (new-node (first parents) (sorted-spans-to-tree))
+     (sorted-spans-to-tree)))
+   (:else
+    (pop parents)
+    nil)))
+
+(byte-compile #'sorted-spans-to-tree)
