@@ -48,6 +48,10 @@
 	  (new-span "L3" 1 10)))
 
   (assert
-   (null (find-min-span 0 (create-parse-tree pos-test-data))))
+   (equal (find-min-span 42 (create-parse-tree pos-test-data))
+	  (new-span "L3" 41 50)))
   
+  (assert
+   (null (find-min-span 0 (create-parse-tree pos-test-data))))
+
   )

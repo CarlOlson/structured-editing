@@ -75,8 +75,6 @@ formatted."
 	   (node-parent tree)))
      (find-min-span point (node-children tree))))
    ((listp tree)
-    (or
-     (find-min-span point (first tree))
-     (find-min-span point (rest tree))))
-   (:else
-    nil)))
+    (map-first (curry find-min-span point) tree))))
+
+(byte-compile #'find-min-span)
