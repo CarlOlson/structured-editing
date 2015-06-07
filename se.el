@@ -59,3 +59,24 @@ formatted."
 
 (let ((byte-compile-warnings '(not free-vars)))
   (byte-compile #'sorted-spans-to-tree))
+
+(defun is-point-in-span (point span)
+  "Checks for point inside given span."
+  (between point (span-start span) (span-end span)))
+
+(defun find-min-span (point tree)
+  "Finds the deepest span in `tree' that contains `point'."
+  (cond
+   ((null tree) nil)
+   ((node-p tree)
+    (or
+     (when (is-point-in-span point (node-parent tree))
+       (or (find-min-span point (node-children tree))
+	   (node-parent tree)))
+     (find-min-span point (node-children tree))))
+   ((listp tree)
+    (or
+     (find-min-span point (first tree))
+     (find-min-span point (rest tree))))
+   (:else
+    nil)))

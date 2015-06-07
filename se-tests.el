@@ -26,15 +26,28 @@
 	   ("L3" 41  50))))
 
   (setq neg-test-data
-	(cons (new-span "L4" 19 21) pos-test-data))
+	(cons (new-span "L4" 19 21) (copy-list pos-test-data)))
 
   (assert
    (create-parse-tree pos-test-data))
 
-  ;; The negative test will corrupt pos-test-data due to sorting the
-  ;; bad list.
   (assert
    (null
-    (create-parse-tree neg-test-data)))
+    (create-parse-tree (copy-list neg-test-data))))
+
+  (assert
+   (every (lambda (x) (is-point-in-span x (new-span nil 1 10)))
+	  '(1 5 10)))
+
+  (assert
+   (notany (lambda (x) (is-point-in-span x (new-span nil 1 10)))
+	   '(0 11)))
+
+  (assert
+   (equal (find-min-span 1 (create-parse-tree pos-test-data))
+	  (new-span "L3" 1 10)))
+
+  (assert
+   (null (find-min-span 0 (create-parse-tree pos-test-data))))
   
   )
