@@ -66,15 +66,12 @@ formatted."
 
 (defun find-min-span (point tree)
   "Finds the deepest span in `tree' that contains `point'."
-  (cond
-   ((null tree) nil)
-   ((node-p tree)
-    (or
+  (typecase tree
+    (node
      (when (is-point-in-span point (node-parent tree))
        (or (find-min-span point (node-children tree))
-	   (node-parent tree)))
-     (find-min-span point (node-children tree))))
-   ((listp tree)
-    (map-first (curry find-min-span point) tree))))
+	   (node-parent tree))))
+    (list
+     (map-first (curry find-min-span point) tree))))
 
 (byte-compile #'find-min-span)
