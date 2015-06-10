@@ -75,3 +75,18 @@ formatted."
      (map-first (curry find-min-span point) tree))))
 
 (byte-compile #'find-min-span)
+
+(defun find-min-span-path (point tree)
+  "Finds a series of nodes in `tree' containing `point'. Returns
+a list containing nodes with the former elements as parents of
+the latter."
+  (typecase tree
+    (node
+     (when (is-point-in-span point (node-parent tree))
+       (cons
+	(node-parent tree)
+	(find-min-span-path point (node-children tree)))))
+    (list
+     (map-first (curry find-min-span-path point) tree))))
+
+(byte-compile #'find-min-span-path)
