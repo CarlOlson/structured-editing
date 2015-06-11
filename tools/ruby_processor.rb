@@ -29,8 +29,19 @@ class RubyProcessor < Parser::AST::Processor
 
   def on_defs node
     add_span node
+    super
   end
 
+  def on_if node
+    add_span node
+    super
+  end
+
+  def on_while node
+    add_span node
+    super
+  end
+  
   private
   def add_span node
     node.location.expression.tap do |loc|
