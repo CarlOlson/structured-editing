@@ -45,7 +45,7 @@ class RubyProcessor < Parser::AST::Processor
   private
   def add_span node
     node.location.expression.tap do |loc|
-      @spans << [ node.type, loc.begin_pos, loc.end_pos ]
+      @spans << [ node.type, loc.begin_pos + 1, loc.end_pos + 1 ]
     end
   end
   
