@@ -1,5 +1,4 @@
 
-(load-file "../highlight.el/highlight.el")
 (load-file "../se-helpers.el")
 (load-file "../se.el")
 

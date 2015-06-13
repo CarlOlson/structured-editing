@@ -27,6 +27,8 @@
 
 (defun se-set-spans ()
   (interactive)
+  (when (null mark-active)
+    (se-clear-highlighted))
   (cond
    ((null se-parse-tree)
     'error)
@@ -43,11 +45,11 @@ is already highlighted, it is expanded to its parent region."
   (se-set-spans)
   (cond
    ((null se-not-highlighted)
-    (hlt-highlight-region (point-min) (point-max)))
+    (se-mark-region (point-min) (point-max)))
    (:else
     (push (pop se-not-highlighted) se-highlighted)
     (let ((span (first se-highlighted)))
-      (hlt-highlight-region (span-start span) (span-end span))))))
+      (se-mark-region (span-start span) (span-end span))))))
 
 (defun se-shrink-highlighted-span ()
   "In se-mode, unhighlights current region. If a smaller region
@@ -56,10 +58,9 @@ was previous highlighted, highlight it again."
   (se-set-spans)
   (when se-highlighted
     (push (pop se-highlighted) se-not-highlighted)
-    (hlt-unhighlight-region)
     (let ((span (first se-highlighted)))
       (when span
-	(hlt-highlight-region (span-start span) (span-end span)))))
+	(se-mark-region (span-start span) (span-end span)))))
   (when (null se-highlighted)
     (se-clear-highlighted)))
 
@@ -72,9 +73,15 @@ was previous highlighted, highlight it again."
     (let ((span (first se-highlighted)))
       (narrow-to-region (span-start span) (span-end span))))))
 
+(defun se-mark-region (start end)
+  (goto-char end)
+  (set-mark-command nil)
+  (goto-char start))
+
 (defun se-clear-highlighted ()
   "Clears all highlighted regions."
   (interactive)
   (setq se-highlighted nil
 	se-not-highlighted nil)
-  (hlt-unhighlight-region))
+  (when mark-active
+    (set-mark-command nil)))
