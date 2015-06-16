@@ -1,0 +1,9 @@
+[submodule "java/spark"]
+	path = java/spark
+	url = https://github.com/perwendel/spark
+[submodule "java/grammars-v4"]
+	path = java/grammars-v4
+	url = https://github.com/antlr/grammars-v4
+[submodule "json.el"]
+	path = json.el
+	url = https://github.com/thorstadt/json.el
