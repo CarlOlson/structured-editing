@@ -59,4 +59,9 @@
 	  (list (new-span "L1" 1 100)
 		(new-span "L2" 21 50)
 		(new-span "L3" 41 50))))
+
+  (assert
+   (equal (find-node (new-span "L2" 1 20) (create-parse-tree pos-test-data))
+	  (new-node (new-span "L2" 1 20)
+		    (list (new-node (new-span "L3" 1 10) nil)))))
   )

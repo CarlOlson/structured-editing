@@ -90,3 +90,23 @@ the latter."
      (map-first (curry find-min-span-path point) tree))))
 
 (byte-compile #'find-min-span-path)
+
+(defun find-node (span tree)
+  "Finds a node in `tree' with parent span equal to `span'."
+  (typecase tree
+    (node
+     (if (equal span (node-parent tree))
+	 tree
+       (map-first (curry find-node span) (node-children tree))))
+    (list
+     (map-first (curry find-node span) tree))))
+
+(byte-compile #'find-node)
+
+(defun find-span-children (span tree)
+  "Finds spans one layer below `span'. This function finds
+children through function `find-node'."
+  (let ((node (find-node span tree)))
+    (when (node-p node)
+      (mapcar #'node-parent (node-children node)))))
+
