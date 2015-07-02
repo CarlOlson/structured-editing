@@ -6,11 +6,11 @@
 (load-file "../json.el/json.el")
 
 (defun list-to-spans (list)
-  (mapcar (lambda (x) (apply 'new-span x))
+  (mapcar (lambda (x) (apply 'se-new-span x))
 	  list))
 
-(defconst se-parse-tree
-  (create-parse-tree
+(defconst se-mode-parse-tree
+  (se-create-parse-tree
    (list-to-spans (json-read-file "ruby-demo-spans"))))
 (load-file "../se-mode.el")
 
