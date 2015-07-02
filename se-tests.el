@@ -43,6 +43,12 @@
     (should (se-term-equal-p span1 node1))
     ))
 
+(ert-deftest se-term-end-regression ()
+  "should not fail when children don't equal parent length"
+  (let* ((tree (se--create-test-tree))
+	 (span (se-find-span (se-new-span "L2" 1 20) tree)))
+    (should (= 20 (se-term-end span)))))
+
 (ert-deftest se-last-span-regression ()
   "should not reach reach max eval depth"
   (should (se-last-span (se--create-test-tree)))

@@ -57,7 +57,13 @@ instead. This will not flatten `term'."
   (se-span-start (se-first-span term)))
 
 (defun se-term-end (term)
-  (se-span-end (se-last-span term)))
+  (typecase term
+    (se-span
+     (se-span-end term))
+    (se-node
+     (se-term-end (se-node-parent term)))
+    (cons
+     (se-term-end (last term)))))
 
 (defun se-term-length (term)
   (1+ (- (se-term-end term)
