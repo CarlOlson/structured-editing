@@ -1,11 +1,11 @@
 
-(defvar se-highlighted nil
+(defvar se-mode-selected nil
   "Variable for internal usage in se-mode.")
 
-(defvar se-not-highlighted nil
+(defvar se-mode-not-selected nil
   "Variable for internal usage in se-mode.")
 
-(defvar se-parse-tree nil
+(defvar se-mode-parse-tree nil
   "Variable for internal usage in se-mode.")
 
 (define-minor-mode se-mode
@@ -15,73 +15,75 @@
   :lighter " se"
   :keymap (make-sparse-keymap)
   (unless se-mode
-    (set (make-local-variable 'se-highlighted) nil)
-    (set (make-local-variable 'se-not-highlighted) nil)
-    (set (make-local-variable 'se-parse-tree) nil))
+    (set (make-local-variable #'se-mode-selected) nil)
+    (set (make-local-variable #'se-mode-not-selected) nil)
+    (set (make-local-variable #'se-mode-parse-tree) nil))
   (when se-mode
-    (se-clear-highlighted)))
+    (se-mode-clear-selected)))
 
-(define-key se-mode-map (kbd "C-c e") 'se-expand-highlighted-span)
-(define-key se-mode-map (kbd "C-c s") 'se-shrink-highlighted-span)
-(define-key se-mode-map [remap narrow-to-region] 'se-narrow-to-highlighted)
+(define-key se-mode-map (kbd "C-c e") #'se-mode-expand-selected)
+(define-key se-mode-map (kbd "C-c s") #'se-mode-shrink-selected)
 
-(defun se-set-spans ()
+;; @TODO implement tree ajusting when region changes
+(defalias #'se-mode-narrow-to-selected #'narrow-to-region)
+(define-key se-mode-map [remap narrow-to-region] #'se-mode-narrow-to-selected)
+
+(defun se-mode-clear-selected ()
+  "Clears all selected regions."
+  (interactive)
+  (setq se-mode-selected nil
+	se-mode-not-selected nil)
+  (when mark-active
+    (set-mark-command nil)))
+
+(defun se-mode-set-spans ()
   (interactive)
   (when (null mark-active)
-    (se-clear-highlighted))
+    (se-mode-clear-selected))
   (cond
-   ((null se-parse-tree)
+   ((null se-mode-parse-tree)
     'error)
-   ((and (null se-highlighted)
-	 (null se-not-highlighted))
-    (setq se-not-highlighted
-	  (nreverse
-	   (find-min-span-path (point) se-parse-tree))))))
+   ((and (null se-mode-selected)
+	 (null se-mode-not-selected))
+    (setq se-mode-not-selected
+	  (nreverse ;; non-destructive se methods should return new lists
+	   (se-find-point-path (point) se-mode-parse-tree))))))
 
-(defun se-expand-highlighted-span ()
-  "In se-mode, highlights smallest span around point. If a region
-is already highlighted, it is expanded to its parent region."
-  (interactive)
-  (se-set-spans)
-  (cond
-   ((null se-not-highlighted)
-    (se-mark-region (point-min) (point-max)))
-   (:else
-    (push (pop se-not-highlighted) se-highlighted)
-    (let ((span (first se-highlighted)))
-      (se-mark-region (span-start span) (span-end span))))))
-
-(defun se-shrink-highlighted-span ()
-  "In se-mode, unhighlights current region. If a smaller region
-was previous highlighted, highlight it again."
-  (interactive)
-  (se-set-spans)
-  (when se-highlighted
-    (push (pop se-highlighted) se-not-highlighted)
-    (let ((span (first se-highlighted)))
-      (when span
-	(se-mark-region (span-start span) (span-end span)))))
-  (when (null se-highlighted)
-    (se-clear-highlighted)))
-
-(defun se-narrow-to-highlighted ()
-  (interactive)
-  (cond
-   ((null se-highlighted)
-    (narrow-to-region (point) (mark)))
-   (:else
-    (let ((span (first se-highlighted)))
-      (narrow-to-region (span-start span) (span-end span))))))
-
-(defun se-mark-region (start end)
+(defun se-mode-mark-region (start end)
   (goto-char end)
   (set-mark-command nil)
   (goto-char start))
 
-(defun se-clear-highlighted ()
-  "Clears all highlighted regions."
+(defun se-mode-select (term)
+  (se-mode-mark-region (se-term-start term) (se-term-end term)))
+
+(defun se-mode-expand-selected ()
+  "In se-mode, selects smallest span around point. If a region is
+already selected, it is expanded to its parent region."
   (interactive)
-  (setq se-highlighted nil
-	se-not-highlighted nil)
-  (when mark-active
-    (set-mark-command nil)))
+  (se-mode-set-spans)
+  (cond
+   ((null se-mode-not-selected)
+    (se-mode-mark-region (point-min) (point-max)))
+   (:else
+    (push (pop se-mode-not-selected) se-mode-selected)
+    (se-mode-select (first se-mode-selected)))))
+
+(defun se-mode-shrink-selected ()
+  "In se-mode, deselect current region. If a smaller region was
+previous selected, select it again."
+  (interactive)
+  (se-mode-set-spans)
+  (when se-mode-selected
+    (push (pop se-mode-selected) se-not-selected)
+    (se-mode-select (first se-mode-selected)))
+  (when (null se-mode-selected)
+    (se-mode-clear-selected)))
+
+(defun se-mode-popup-window (name text)
+  (let* ((popup-buffer (get-buffer-create name))
+	 (popup-window (display-buffer popup-buffer)))
+    (with-current-buffer popup-buffer
+      (erase-buffer)
+      (insert text)
+      (shrink-window-if-larger-than-buffer popup-window))))
