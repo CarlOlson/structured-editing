@@ -75,9 +75,9 @@ previous selected, select it again."
   (interactive)
   (se-mode-set-spans)
   (when se-mode-selected
-    (push (pop se-mode-selected) se-not-selected)
-    (se-mode-select (first se-mode-selected)))
-  (when (null se-mode-selected)
+    (push (pop se-mode-selected) se-mode-not-selected))
+  (if se-mode-selected
+      (se-mode-select (se-mode-selected))
     (se-mode-clear-selected)))
 
 (defun se-mode-popup-window (name text)
