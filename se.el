@@ -1,8 +1,8 @@
 
 (defstruct
     (se-span
-     (:constructor se-new-span (type start end)))
-  type start end)
+     (:constructor se-new-span (type start end &rest data)))
+  type start end data)
 
 (defstruct
     (se-node
