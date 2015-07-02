@@ -17,35 +17,20 @@ class RubyProcessor < Parser::AST::Processor
     processor
   end
 
-  def on_class node
-    add_span node
-    super
-  end
-  
-  def on_def node
-    add_span node
-    super
-  end
-
-  def on_defs node
-    add_span node
-    super
-  end
-
-  def on_if node
-    add_span node
-    super
-  end
-
-  def on_while node
-    add_span node
+  def process node
+    if node
+      node.location.expression.tap do |loc|
+        next if loc.nil?
+        @spans << [ node.type, loc.begin_pos + 1, loc.end_pos + 1 ]
+      end
+    end
     super
   end
   
   private
-  def add_span node
+  def add_span node, type = nil
     node.location.expression.tap do |loc|
-      @spans << [ node.type, loc.begin_pos + 1, loc.end_pos + 1 ]
+      @spans << [ type || node.type, loc.begin_pos + 1, loc.end_pos + 1 ]
     end
   end
   
