@@ -8,6 +8,12 @@
 (defvar se-mode-parse-tree nil
   "Variable for internal usage in se-mode.")
 
+(defvar se-mode-inspect-format
+  '("Type:\t" se-term-name "\nStart:\t" se-term-start "\nEnd:\t" se-term-end)
+  "Format string for use with `se-mode-inspect'. Symbols are
+called as methods with the current selected term. Strings are
+echoed.")
+
 (define-minor-mode se-mode
   "Toggle Structure Editing mode.
 \\{se-mode-map}"
@@ -23,6 +29,7 @@
 
 (define-key se-mode-map (kbd "C-c e") #'se-mode-expand-selected)
 (define-key se-mode-map (kbd "C-c s") #'se-mode-shrink-selected)
+(define-key se-mode-map (kbd "C-c i") #'se-mode-inspect)
 (define-key se-mode-map (kbd "<left>") #'se-mode-select-previous)
 (define-key se-mode-map (kbd "<right>") #'se-mode-select-next)
 
@@ -145,3 +152,25 @@ previous selected, select it again."
       (erase-buffer)
       (insert text)
       (shrink-window-if-larger-than-buffer popup-window))))
+
+(defun se-mode-convert (s)
+  (typecase s
+    (string s)
+    (symbol
+     (format "%s" (funcall s (se-mode-selected))))
+    (t "")))
+
+(defun se-mode-inspect ()
+  (interactive)
+  (when (se-mode-selected)
+    (let* ((msg nil)
+	   (span (se-node-parent (se-mode-selected)))
+	   (data (se-span-data span)))
+      (cond
+       ((null data)
+	(setq msg "No node data."))
+       (:else
+	(setq msg data)))
+      (se-mode-popup-window
+       "*se*"
+       (mapconcat #'se-mode-convert se-mode-inspect-format nil)))))

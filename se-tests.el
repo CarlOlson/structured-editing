@@ -35,6 +35,7 @@
     (should (equal (list span1) (se-as-spans (list node1))))
     (should (equal span1 (se-first-span node1)))
     (should (equal span1 (se-last-span node1)))
+    (should (equal "L1" (se-term-name node1)))
     (should (equal 1 (se-term-start node1)))
     (should (equal 10 (se-term-end node1)))
     (should (equal 10 (se-term-length node1)))

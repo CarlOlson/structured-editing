@@ -1,8 +1,8 @@
 
 (defstruct
     (se-span
-     (:constructor se-new-span (type start end &rest data)))
-  type start end data)
+     (:constructor se-new-span (name start end &rest data)))
+  name start end data)
 
 (defstruct
     (se-node
@@ -52,6 +52,9 @@ instead. This will not flatten `term'."
     (cons ;; make work with sequences
      (se-last-span (first (last term))))
     (t (signal 'wrong-type-argument '(term)))))
+
+(defun se-term-name (term)
+  (se-span-name (se-first-span term)))
 
 (defun se-term-start (term)
   (se-span-start (se-first-span term)))
