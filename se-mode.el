@@ -161,16 +161,10 @@ previous selected, select it again."
     (t "")))
 
 (defun se-mode-inspect ()
+  "Displays information on currently selected term. Uses
+`se-mode-inspect-format' to determine display format."
   (interactive)
   (when (se-mode-selected)
-    (let* ((msg nil)
-	   (span (se-node-parent (se-mode-selected)))
-	   (data (se-span-data span)))
-      (cond
-       ((null data)
-	(setq msg "No node data."))
-       (:else
-	(setq msg data)))
-      (se-mode-popup-window
-       "*se*"
-       (mapconcat #'se-mode-convert se-mode-inspect-format nil)))))
+    (se-mode-popup-window
+     "*se*"
+     (mapconcat #'se-mode-convert se-mode-inspect-format nil))))
