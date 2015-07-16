@@ -1,18 +1,22 @@
 
 (defvar se-mode-selected nil
   "Variable for internal usage in se-mode.")
+(make-variable-buffer-local 'se-mode-selected)
 
 (defvar se-mode-not-selected nil
   "Variable for internal usage in se-mode.")
+(make-variable-buffer-local 'se-mode-not-selected)
 
 (defvar se-mode-parse-tree nil
   "Variable for internal usage in se-mode.")
+(make-variable-buffer-local 'se-mode-parse-tree)
 
 (defvar se-mode-inspect-format
   '("Type:\t" se-term-name "\nStart:\t" se-term-start "\nEnd:\t" se-term-end)
   "Format string for use with `se-mode-inspect'. Symbols are
 called as methods with the current selected term. Strings are
 echoed.")
+(make-variable-buffer-local 'se-mode-inspect-format)
 
 (define-minor-mode se-mode
   "Toggle Structure Editing mode.
@@ -20,12 +24,7 @@ echoed.")
   :init-value nil
   :lighter " se"
   :keymap (make-sparse-keymap)
-  (unless se-mode
-    (set (make-local-variable #'se-mode-selected) nil)
-    (set (make-local-variable #'se-mode-not-selected) nil)
-    (set (make-local-variable #'se-mode-parse-tree) nil))
-  (when se-mode
-    (se-mode-clear-selected)))
+  )
 
 (define-key se-mode-map (kbd "C-c e") #'se-mode-expand-selected)
 (define-key se-mode-map (kbd "C-c s") #'se-mode-shrink-selected)
