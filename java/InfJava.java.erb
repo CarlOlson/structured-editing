@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.*;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
+import grammars.*;
 
 public class InfJava
 {
@@ -65,7 +66,7 @@ public class InfJava
 	    ParseTreeWalker <%= name.downcase %>walker = new ParseTreeWalker();
 
 	    out = new StringBuilder();
-            out.append("[");
+            out.append("{\"spans\":[");
 
 	    <%= name %>BaseListener <%= name.downcase %>listener = (new <%= name %>BaseListener()
                 {
@@ -101,7 +102,7 @@ public class InfJava
 
 	    <%= name.downcase %>walker.walk(<%= name.downcase %>listener, <%= name.downcase %>tree);
 	    
-            out.append("]\n");
+            out.append("]}\n");
             return out.toString();
 	    <% end %>
         default:

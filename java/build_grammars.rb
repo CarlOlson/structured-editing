@@ -8,7 +8,7 @@ require 'pathname'
 require 'csv'
 require 'erb'
 
-OUT_DIR = './grammars'
+OUT_DIR = './infjava/grammars'
 
 grammars = []
 
