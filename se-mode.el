@@ -32,10 +32,6 @@ echoed.")
 (define-key se-mode-map (kbd "<left>") #'se-mode-select-previous)
 (define-key se-mode-map (kbd "<right>") #'se-mode-select-next)
 
-;; @TODO implement tree ajusting when region changes
-(defalias #'se-mode-narrow-to-selected #'narrow-to-region)
-(define-key se-mode-map [remap narrow-to-region] #'se-mode-narrow-to-selected)
-
 (defun se-mode-selected ()
   (first se-mode-selected))
 
