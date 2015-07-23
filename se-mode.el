@@ -18,19 +18,60 @@ called as methods with the current selected term. Strings are
 echoed.")
 (make-variable-buffer-local 'se-mode-inspect-format)
 
+(defvar se-mode-pre-navigation-state nil
+  "Holds buffer state before se-mode is activated for
+navigation.")
+(make-variable-buffer-local 'se-mode-pre-navigation-state)
+
 (define-minor-mode se-mode
   "Toggle Structure Editing mode.
 \\{se-mode-map}"
   :init-value nil
   :lighter " se"
-  :keymap (make-sparse-keymap)
-  )
+  :keymap (let ((map (make-sparse-keymap)))
+	    (define-key map (kbd "M-s") #'se-mode-start-navigation)
+	    map))
 
-(define-key se-mode-map (kbd "C-c e") #'se-mode-expand-selected)
-(define-key se-mode-map (kbd "C-c s") #'se-mode-shrink-selected)
-(define-key se-mode-map (kbd "C-c i") #'se-mode-inspect)
-(define-key se-mode-map (kbd "<left>") #'se-mode-select-previous)
-(define-key se-mode-map (kbd "<right>") #'se-mode-select-next)
+(defvar se-mode-active-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "q") #'se-mode-stop-navigation)
+    (define-key map (kbd "e") #'se-mode-expand-selected)
+    (define-key map (kbd "s") #'se-mode-shrink-selected)
+    (define-key map (kbd "i") #'se-mode-inspect)
+    (define-key map (kbd "<left>") #'se-mode-select-previous)
+    (define-key map (kbd "<right>") #'se-mode-select-next)
+    map))
+
+(defun se-mode-start-navigation ()
+  (interactive)
+  (cond
+   ((null overriding-local-map)
+    (se-mode-push-state)
+    (setq overriding-local-map se-mode-active-map)
+    (read-only-mode 1))
+   (:else
+    (message "Local map is already overriden, cannot activate se-mode navigation bindings."))))
+
+(defun se-mode-stop-navigation ()
+  (interactive)
+  (se-mode-pop-state))
+
+(defun se-mode-state-put (key value)
+  (setq se-mode-pre-navigation-state
+	(plist-put se-mode-pre-navigation-state key value)))
+
+(defun se-mode-state-get (key)
+  (plist-get se-mode-pre-navigation-state key))
+
+(defun se-mode-push-state ()
+  (se-mode-state-put 'read-only (if buffer-read-only 1 -1))
+  (se-mode-state-put 'local-map overriding-local-map))
+
+(defun se-mode-pop-state ()
+  (read-only-mode (se-mode-state-get 'read-only))
+  (setq overriding-local-map (se-mode-state-get 'local-map)))
+
+
 
 (defun se-mode-selected ()
   (first se-mode-selected))
