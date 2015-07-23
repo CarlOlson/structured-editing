@@ -1,14 +1,15 @@
 
-classpath = ./infjava;./infjava/grammars;antlr.jar
+classpath = ./infjava;antlr.jar
 
-all: antlr grammars compile
+all: grammars compile jar
 
 compile:
+	cp WindowsFileInputStream.java ./infjava/WindowsFileInputStream.java
 	javac -cp $(classpath) ./infjava/*.java
 
 jar:
 	cd infjava
-	jar cvfe infjava.jar InfJava *.class grammars/*.class
+	jar cvfe infjava.jar InfJava *.class
 	mv infjava.jar ..
 	cd ..
 
@@ -17,10 +18,9 @@ test:
 
 grammars:
 	ruby build_grammars.rb
-	javac -cp $(classpath) ./infjava/grammars/*.java
 
 antlr:
 	wget -nc http://www.antlr.org/download/antlr-4.5-complete.jar -O antlr.jar
 
 clean:
-	rm -rf antlr.jar infjava/grammars infjava/*.class infjava/InfJava.java
+	rm -rf infjava.jar infjava/*
