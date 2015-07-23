@@ -203,4 +203,5 @@ previous selected, select it again."
   (when (se-mode-selected)
     (se-mode-popup-window
      "*se*"
-     (mapconcat #'se-mode-convert se-mode-inspect-format nil))))
+     (mapconcat #'se-mode-convert se-mode-inspect-format nil))
+    (setq deactivate-mark nil)))
