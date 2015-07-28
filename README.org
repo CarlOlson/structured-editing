@@ -24,6 +24,15 @@ by definition a subset, but think of terms as the contents of parse
 trees. Points are not terms.
 
 ** Quickstart Derived Mode
+*** Loading the Library
+Add the following code to your `~/.emacs' file to automatically load
+the se-mode files.
+#+BEGIN_SRC
+(let ((se-path "<PATH-TO-SE>"))
+  (add-to-list 'load-path se-path)
+  (add-to-list 'load-path (concat se-path "/json.el")))
+(load-library "se")
+#+END_SRC
 *** Methods of Interest
 When viewed in Emacs, using `C-h f' on each line will bring up
 documentation.

@@ -1,4 +1,9 @@
 
+(load-library "json")
+(load-library "se-mode")
+(load-library "se-inf")
+(load-library "se-helpers")
+
 (defstruct
     (se-span
      (:constructor se-new-span (name start end &rest data)))
