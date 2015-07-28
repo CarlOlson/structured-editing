@@ -1,8 +1,9 @@
 
-(load-file "../se-helpers.el")
 (load-file "../se.el")
+(load-file "../se-helpers.el")
+(load-file "../se-mode.el")
+(load-file "../se-inf.el")
 
-(defconst json-array-type 'list)
 (load-file "../json.el/json.el")
 
 (defun list-to-spans (list)
@@ -10,24 +11,22 @@
 	  list))
 
 (defconst se-mode-demo-tree
-  (se-create-parse-tree
-   (list-to-spans (json-read-file "ruby-demo-spans"))))
+  (let ((json-array-type 'list))
+    (se-create-parse-tree
+     (list-to-spans (json-read-file "ruby-demo-spans")))))
 
-(defun se-mode-parse-file ()
+(defun se-ruby-parse-file ()
   (interactive)
   (let ((json nil)
-	(file (buffer-file-name)))
+	(file (buffer-file-name))
+	(json-array-type 'list))
     (with-temp-buffer
       (call-process "ruby" nil t nil "../tools/spanize.rb" file)
-      (message (buffer-string))
       (setq json (json-read-from-string (buffer-string))))
     (setq se-mode-parse-tree
     	  (se-create-parse-tree (list-to-spans json)))))
 
-(load-file "../se-mode.el")
-
 (find-file "example.rb")
 (se-mode)
 (setq se-mode-parse-tree se-mode-demo-tree)
-(define-key se-navigation-mode-map (kbd "c") #'se-mode-parse-file)
-
+(define-key se-navigation-mode-map (kbd "c") #'se-ruby-parse-file)

@@ -15,15 +15,14 @@
     (se-create-parse-tree
      (list-to-spans (json-read-file "java_spans")))))
 
-(defun se-mode-parse-file ()
+(defun se-java-parse-file ()
   (interactive)
   (se-inf-ask (concat "PARSE-FILE\t" (buffer-file-name) "\tjava")))
-(define-key se-navigation-mode-map (kbd "c") #'se-mode-parse-file)
 
 (find-file "InfJava.java")
 (se-mode)
-(setq se-inf-process
-      (start-process "java-demo" "*se-mode: java-demo*"
-		     "java" "-cp" "*" "InfJava"))
-(se-inf-start)
+(se-inf-start
+ (start-process "java-demo" "*se-mode: java-demo*"
+		"java" "-cp" "*" "InfJava"))
 (setq se-mode-parse-tree se-mode-demo-tree)
+(add-hook 'se-inf-parse-hook #'se-java-parse-file)

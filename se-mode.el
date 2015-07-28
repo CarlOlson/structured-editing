@@ -36,6 +36,7 @@ navigation."))
   :init-value nil
   :lighter " navi"
   :keymap (let ((map (make-sparse-keymap)))
+	    (define-key map (kbd "c") #'se-inf-parse-file)
 	    (define-key map (kbd "q") (lambda () (interactive) (se-navigation-mode -1)))
 	    (define-key map (kbd "e") #'se-mode-expand-selected)
 	    (define-key map (kbd "s") #'se-mode-shrink-selected)

@@ -14,10 +14,17 @@ started with `start-process'."))
      (with-current-buffer closure (se-inf-process-json-string response)))
    "Stores callback function for `se-inf-ask'."))
 
-(defun se-inf-start ()
-  "Expects `se-inf-process' to have already been set. Should be
-called at the start of an `se-mode'."
-  (setq se-inf-queue (tq-create se-inf-process)))
+(make-variable-buffer-local
+ (defvar se-inf-parse-hook nil
+   "Functions to be evaluated upon parse request."))
+
+(defun se-inf-start (proc)
+  "Initialize necessary variables to use se-inf
+functions. Expects `proc' to be the process returned from
+`start-process'. Should be called at the start of an `se-mode'."
+  (setq
+   se-inf-process proc
+   se-inf-queue (tq-create se-inf-process)))
 
 (defun se-inf-stop ()
   "Should be called at the end of an `se-mode'."
@@ -32,6 +39,15 @@ returned."
   (unless (string-suffix-p "\n" question)
     (setq question (concat question "\n")))
   (tq-enqueue se-inf-queue question "\n" (buffer-name) se-inf-process-response))
+
+(defun se-inf-parse-file (&rest file)
+  "Sends parse request to current process. Sends the default
+request unless se-inf-parse-hook is non-nil. Uses the current
+buffer's file unless `file' is non-nil."
+  (interactive)
+  (if (null se-inf-parse-hook)
+      (se-inf-ask (or file (buffer-file-name)))
+    (run-hooks 'se-inf-parse-hook)))
 
 (defun se-inf-get-spans (json)
   (cl-labels ((new-span (lst) ;; emacs 24.3 made `labels' obsolete
