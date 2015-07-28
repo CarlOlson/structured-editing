@@ -29,5 +29,5 @@
 (find-file "example.rb")
 (se-mode)
 (setq se-mode-parse-tree se-mode-demo-tree)
-(define-key se-mode-map (kbd "C-c c") #'se-mode-parse-file)
+(define-key se-navigation-mode-map (kbd "c") #'se-mode-parse-file)
 

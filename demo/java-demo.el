@@ -18,7 +18,7 @@
 (defun se-mode-parse-file ()
   (interactive)
   (se-inf-ask (concat "PARSE-FILE\t" (buffer-file-name) "\tjava")))
-(define-key se-mode-map (kbd "C-c c") #'se-mode-parse-file)
+(define-key se-navigation-mode-map (kbd "c") #'se-mode-parse-file)
 
 (find-file "InfJava.java")
 (se-mode)

@@ -18,7 +18,7 @@
 (defun se-mode-parse-file ()
   (interactive)
   (se-inf-ask (concat "PARSE-FILE\t" (buffer-file-name) "\thtml")))
-(define-key se-mode-active-map (kbd "c") #'se-mode-parse-file)
+(define-key se-navigation-mode-map (kbd "c") #'se-mode-parse-file)
 
 (find-file "example.html")
 (se-mode)
