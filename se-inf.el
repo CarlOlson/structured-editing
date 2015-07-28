@@ -1,18 +1,18 @@
 
-(defvar se-inf-process nil
-  "Holds process for current buffer in se-mode. Processes are
-started with `start-process'.")
-(make-variable-buffer-local 'se-inf-process)
+(make-variable-buffer-local
+ (defvar se-inf-process nil
+   "Holds process for current buffer in se-mode. Processes are
+started with `start-process'."))
 
-(defvar se-inf-queue nil
-  "Transaction queue for `se-inf-process'.")
-(make-variable-buffer-local 'se-inf-queue)
+(make-variable-buffer-local
+ (defvar se-inf-queue nil
+   "Transaction queue for `se-inf-process'."))
 
-(defvar se-inf-process-response
-  (lambda (closure response)
-    (with-current-buffer closure (se-inf-process-json-string response)))
-  "Stores callback function for `se-inf-ask'.")
-(make-variable-buffer-local 'se-inf-process-response)
+(make-variable-buffer-local
+ (defvar se-inf-process-response
+   (lambda (closure response)
+     (with-current-buffer closure (se-inf-process-json-string response)))
+   "Stores callback function for `se-inf-ask'."))
 
 (defun se-inf-start ()
   "Expects `se-inf-process' to have already been set. Should be

@@ -1,27 +1,27 @@
 
-(defvar se-mode-selected nil
-  "Variable for internal usage in se-mode.")
-(make-variable-buffer-local 'se-mode-selected)
+(make-variable-buffer-local
+ (defvar se-mode-selected nil
+   "Variable for internal usage in se-mode."))
 
-(defvar se-mode-not-selected nil
-  "Variable for internal usage in se-mode.")
-(make-variable-buffer-local 'se-mode-not-selected)
+(make-variable-buffer-local
+ (defvar se-mode-not-selected nil
+   "Variable for internal usage in se-mode."))
 
-(defvar se-mode-parse-tree nil
-  "Variable for internal usage in se-mode.")
-(make-variable-buffer-local 'se-mode-parse-tree)
+(make-variable-buffer-local
+ (defvar se-mode-parse-tree nil
+   "Variable for internal usage in se-mode."))
 
-(defvar se-mode-inspect-format
-  '("Type:\t" se-term-name "\nStart:\t" se-term-start "\nEnd:\t" se-term-end)
-  "Format string for use with `se-mode-inspect'. Symbols are
+(make-variable-buffer-local
+ (defvar se-mode-inspect-format
+   '("Type:\t" se-term-name "\nStart:\t" se-term-start "\nEnd:\t" se-term-end)
+   "Format string for use with `se-mode-inspect'. Symbols are
 called as methods with the current selected term. Strings are
-echoed.")
-(make-variable-buffer-local 'se-mode-inspect-format)
+echoed."))
 
-(defvar se-mode-pre-navigation-state nil
-  "Holds buffer state before se-mode is activated for
-navigation.")
-(make-variable-buffer-local 'se-mode-pre-navigation-state)
+(make-variable-buffer-local
+ (defvar se-mode-pre-navigation-state nil
+   "Holds buffer state before se-mode is activated for
+navigation."))
 
 (define-minor-mode se-mode
   "Toggle Structure Editing mode.
