@@ -141,8 +141,8 @@ previous selected, select it again."
      (prev
       (se-mode-update prev)
       (se-mode-expand-selected))
-     (se-mode-not-selected
-      (se-mode-expand-selected))
+     ;; (se-mode-not-selected
+     ;;  (se-mode-expand-selected))
      (:else
       (message "Selected term has no previous.")))))
 
@@ -164,10 +164,10 @@ previous selected, select it again."
      (next
       (se-mode-update next)
       (se-mode-expand-selected))
-     ((and (se-mode-selected)
-	   (se-node-children (se-mode-selected)))
-      (se-mode-update (first (se-node-children (se-mode-selected))))
-      (se-mode-expand-selected))
+     ;; ((and (se-mode-selected)
+     ;; 	   (se-node-children (se-mode-selected)))
+     ;;  (se-mode-update (first (se-node-children (se-mode-selected))))
+     ;;  (se-mode-expand-selected))
      ;; add ability to go around
      (:else
       (message "Selected term has no next.")))))
