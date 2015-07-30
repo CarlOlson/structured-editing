@@ -65,9 +65,11 @@ buffer's file unless `file' is non-nil."
     (message (format "Error: %s" msg))))
 
 (defun se-inf-process-json-string (str)
-  (let* ((json-array-type 'list)
-	 (json (json-read-from-string str)))
-    (se-inf-process-error (se-inf-get-error json) json)
-    (se-inf-process-spans (se-inf-get-spans json) json)
-    json))
-  
+  (condition-case err
+      (let* ((json-array-type 'list)
+	     (json (json-read-from-string str)))
+	(se-inf-process-error (se-inf-get-error json) json)
+	(se-inf-process-spans (se-inf-get-spans json) json)
+	json)
+    (error
+     (message "%s" (error-message-string err)))))
