@@ -102,6 +102,14 @@
     (should (= 3 (length (se-find-after span3 tree))))
     ))
 
+(ert-deftest se-iteration ()
+  "Test common iteration methods work."
+  ;; se-filter
+  (let ((tree (se--create-test-tree)))
+    (should-not (se-filter (lambda (term) (string= "L4" (se-term-name term))) tree))
+    (should (= 3 (length (se-filter (lambda (term) (string= "L3" (se-term-name term))) tree))))
+    ))
+
 (ert-deftest se-destructive-methods ()
   "Test that destructive methods function."
   ;; tests need to be written

@@ -251,3 +251,23 @@ of `term' isn't kept."
      (se-cons-t
       (se-term-expand-to (first node) point)
       (se-term-expand-to (rest node) point)))))
+
+(defun se-filter (pred tree)
+  "Filters spans, nodes, and trees. `pred' should accept a single
+term, if `nil' is returned the node isn't kept. A list of nodes
+is returned. If a parent node is removed, children are still
+tested. Elements guaranteed to be in reverse order."
+  (let (acc)
+    (cl-labels
+	((helper
+	  (tree) (typecase tree
+		   (se-span
+		    (when (funcall pred tree) (push tree acc)))
+		   (se-node
+		    (when (funcall pred tree)
+		      (push tree acc))
+		    (helper (se-node-children tree)))
+		   (cons
+		    (dolist (term tree) (helper term))))))
+      (helper tree)
+      acc)))
