@@ -5,7 +5,7 @@
 
 (defun se--create-test-spans ()
   (mapcar
-   (curry apply 'se-new-span)
+   (se-curry #'apply 'se-new-span)
    '(("L1" 1 100)
      ("L2" 1 20)
      ("L3" 1 10)

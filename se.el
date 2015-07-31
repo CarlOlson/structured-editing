@@ -79,7 +79,7 @@ instead. This will not flatten `term'."
 
 (defun se-point-in-term-p (point term)
   "Checks if `point' is contained within the spans of `term'."
-  (between point (se-term-start term) (se-term-end term)))
+  (se-between point (se-term-start term) (se-term-end term)))
 
 (defun se-term-equal-p (term1 term2)
   "Compares the start and end points of `term1' and `term2'. This
@@ -145,7 +145,7 @@ formatted."
 	   (se-find-point point (se-node-children tree))
 	 tree)))
     (sequence
-     (map-1 (curry se-find-point point) tree))))
+     (se-map-1 (se-curry #'se-find-point point) tree))))
 
 (defun se-find-point-path (point tree)
   "Finds a series of nodes in `tree' containing `point'. Returns
@@ -157,7 +157,7 @@ the latter."
        (cons tree
 	     (se-find-point-path point (se-node-children tree)))))
     (sequence
-     (map-1 (curry se-find-point-path point) tree))))
+     (se-map-1 (se-curry #'se-find-point-path point) tree))))
 
 (defun se-find-span (span tree)
   "Finds a node in `tree' with parent span equal to
@@ -166,9 +166,9 @@ the latter."
     (se-node
      (if (equal span (se-node-parent tree))
 	 tree
-       (map-1 (curry se-find-span span) (se-node-children tree))))
+       (se-map-1 (se-curry #'se-find-span span) (se-node-children tree))))
     (sequence
-     (map-1 (curry se-find-span span) tree))))
+     (se-map-1 (se-curry #'se-find-span span) tree))))
 
 (defun se-find-span-path (span tree)
   "Finds a series of nodes in `tree' containing each other ending
@@ -185,7 +185,7 @@ latter. Returns `nil' if no node matches."
 	 (when temp
 	   (cons tree temp))))))
     (sequence
-     (map-1 (curry se-find-span-path span) tree))))
+     (se-map-1 (se-curry #'se-find-span-path span) tree))))
 
 (defun se-find-after (term tree)
   "Collects all nodes in `tree' after reaching `term'. The node
@@ -244,10 +244,10 @@ of `term' isn't kept."
        (setf (se-span-end node) point)
        node))
     (se-node
-     (cons-t
+     (se-cons-t
       (se-term-expand-to (se-node-span node) point)
       (se-term-expand-to (se-node-children node) point)))
     (cons
-     (cons-t
+     (se-cons-t
       (se-term-expand-to (first node) point)
       (se-term-expand-to (rest node) point)))))
