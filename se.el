@@ -6,7 +6,7 @@
 
 (defstruct
     (se-span
-     (:constructor se-new-span (name start end &rest data)))
+     (:constructor se-new-span (name start end &optional data)))
   name start end data)
 
 (defstruct

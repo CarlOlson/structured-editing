@@ -12,11 +12,8 @@
    "Variable for internal usage in se-mode."))
 
 (make-variable-buffer-local
- (defvar se-mode-inspect-format
-   '("Type:\t" se-term-name "\nStart:\t" se-term-start "\nEnd:\t" se-term-end)
-   "Format string for use with `se-mode-inspect'. Symbols are
-called as methods with the current selected term. Strings are
-echoed."))
+ (defvar se-mode-inspect-hook nil
+   "Evaluates hooks when `se-mode-inspect' is called."))
 
 (make-variable-buffer-local
  (defvar se-navi-pre-state nil
@@ -173,6 +170,8 @@ previous selected, select it again."
       (message "Selected term has no next.")))))
 
 (defun se-mode-popup-window (name text)
+  (when (get-buffer name)
+    (kill-buffer name))
   (let* ((popup-buffer (get-buffer-create name))
 	 (popup-window (display-buffer popup-buffer)))
     (with-current-buffer popup-buffer
@@ -188,11 +187,37 @@ previous selected, select it again."
     (t "")))
 
 (defun se-mode-inspect ()
-  "Displays information on currently selected term. Uses
-`se-mode-inspect-format' to determine display format."
+  "Should displays information on currently selected term. Uses
+default method when `se-mode-inspect-hook' is nil, otherwise
+evaluates hooks."
   (interactive)
-  (when (se-mode-selected)
+  (cond
+   ((null (se-mode-selected)))
+   ((null se-mode-inspect-hook)
     (se-mode-popup-window
      "*se*"
-     (mapconcat #'se-mode-convert se-mode-inspect-format nil))
-    (setq deactivate-mark nil)))
+     (se-mode-pretty-term (se-mode-selected))))
+   (:else
+    (run-hooks 'se-mode-inspect-hook)))
+  (setq deactivate-mark nil))
+
+(defun se-mode-pretty-json (json)
+  (let (max fstr)
+    (loop for (key . value) in json
+	  maximizing (length (format "%s" key)) into maxlen
+	  finally (setq max maxlen))
+    (setq fstr (format "%%%ds:\t%%s\n" max))
+    (loop for (key . value) in json
+	  do (setq key (capitalize (format "%s" key)))
+	  collecting (format fstr key value) into lines
+	  finally (return (apply #'concat lines)))))
+
+(defun se-mode-pretty-term (term)
+  (princ (se-span-data (se-first-span term)))
+  (se-mode-pretty-json 
+   (append
+    `((name . ,(se-term-name term))
+      (start . ,(se-term-start term))
+      (end . ,(se-term-end term)))
+    (se-span-data (se-first-span term)))))
+    
