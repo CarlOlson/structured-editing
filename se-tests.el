@@ -10,7 +10,7 @@
      ("L2" 1 20)
      ("L3" 1 10)
      ("L2" 21 50)
-     ("L2" 51 100)
+     ("L2" 50 100)
      ("L1" 101 110)
      ("L3" 30 40)
      ("L3" 41 50))))
@@ -38,8 +38,8 @@
     (should (equal "L1" (se-term-name node1)))
     (should (equal 1 (se-term-start node1)))
     (should (equal 10 (se-term-end node1)))
-    (should (equal 10 (se-term-length node1)))
-    (should (se-point-in-term-p 10 node1))
+    (should (equal 9 (se-term-length node1)))
+    (should (se-point-in-term-p 9 node1))
     (should-not (se-point-in-term-p 0 node1))
     (should (se-term-equal-p span1 node1))
     ))
@@ -79,10 +79,11 @@
     ))
 
 (ert-deftest se-find-methods ()
-  (let ((tree (se--create-test-tree))
-	(span1 (se-new-span "L3" 1 10))
-	(span2 (se-new-span "L3" 5 30))
-	(span3 (se-new-span "L3" 30 40)))
+  (let* ((tree (se--create-test-tree))
+	 (span1 (se-new-span "L3" 1 10))
+	 (node1 (se-new-node span1 nil))
+	 (span2 (se-new-span "L3" 5 30))
+	 (span3 (se-new-span "L3" 30 40)))
     ;; se-find-point
     (should (= 10 (se-term-end (se-find-point 1 tree))))
     (should (se-node-p (se-find-point 1 tree)))
@@ -94,12 +95,22 @@
     (should-not (se-find-span span2 tree))
     ;; se-find-span-path
     (should (= 3 (length (se-find-span-path span1 tree))))
+    (should (= 3 (length (se-find-span-path node1 tree))))
     (should (every #'se-node-p (se-find-span-path span1 tree)))
     (should-not (se-find-span-path span2 tree))
     ;; se-find-after
     (should (= 5 (length (se-flatten (se-find-after span1 tree)))))
     ;; (should-not (se-find-after span2 tree))
     (should (= 3 (length (se-find-after span3 tree))))
+    ))
+
+(ert-deftest se-find-regression ()
+  "should treat span interval as [start, end)"
+  (let ((tree (se--create-test-tree))
+	(span (se-new-span "L2" 50 100)))
+    (should-not (se-point-in-term-p 100 span))
+    (should (equal "L2" (se-term-name (se-find-point 50 tree))))
+    (should (= 2 (length (se-find-point-path 50 tree))))
     ))
 
 (ert-deftest se-iteration ()

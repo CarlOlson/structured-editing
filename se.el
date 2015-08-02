@@ -74,12 +74,13 @@ instead. This will not flatten `term'."
      (se-term-end (last term)))))
 
 (defun se-term-length (term)
-  (1+ (- (se-term-end term)
-	 (se-term-start term))))
+  (- (se-term-end term)
+     (se-term-start term)))
 
 (defun se-point-in-term-p (point term)
-  "Checks if `point' is contained within the spans of `term'."
-  (se-between point (se-term-start term) (se-term-end term)))
+  "Checks if `point' is contained within the spans of
+`term'. Intervals are treated as [start, end)."
+  (se-between point (se-term-start term) (1- (se-term-end term))))
 
 (defun se-term-equal-p (term1 term2)
   "Compares the start and end points of `term1' and `term2'. This
