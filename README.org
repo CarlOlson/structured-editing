@@ -9,7 +9,7 @@ information in order to better edit and navigate code.
 position in a buffer. Points in buffers begin at one.
 
 <<<span>>> A label, a start, and end point of a syntactic region. End points are
-exclusive. A span may also extra information.
+exclusive. A span may also contain extra information.
 
 <<<node>>> A parent span and a list of children spans. The parent span
 should encapsulate all children spans. The children spans should be
@@ -47,11 +47,11 @@ documentation.
   "Documentation."
   :init-value nil
   :lighter " my-se"
-  :keymap se-mode-map
+  :keymap (make-keymap)
   (when my-se-mode
     (se-inf-start
       (start-process "my-se-mode" "*my-se-mode*"
-        "java" "-cp" ".;/opt/myparser" "MyParser"))))
+        "java" "-cp" ".;/opt/myparser" "MyParser")))
   (unless my-se-mode
     (se-inf-stop)))
 (define-key my-se-mode-map (kbd "M-s") #'se-navigation-mode)
