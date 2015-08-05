@@ -1,4 +1,6 @@
 
+(require 'tq)
+
 (make-variable-buffer-local
  (defvar se-inf-process nil
    "Holds process for current buffer in se-mode. Processes are
