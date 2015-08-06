@@ -21,8 +21,10 @@
 
 (find-file "example.html")
 (se-mode)
-(se-inf-start
- (start-process "html-demo" "*se-mode: html-demo*"
-		"java" "-cp" "*" "InfJava"))
+(unless se-inf-parse-hook
+  (se-inf-start
+   (start-process "html-demo" "*se-mode: html-demo*"
+		  "java" "-cp" "*" "InfJava")))
 (setq se-mode-parse-tree se-mode-demo-tree)
 (add-hook 'se-inf-parse-hook #'se-html-parse-file)
+(define-key se-mode-map (kbd "<tab>") #'se-mode-indent-buffer)
