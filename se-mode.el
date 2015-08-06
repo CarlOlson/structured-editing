@@ -20,6 +20,10 @@
    "Holds buffer state before se-mode is activated for
 navigation."))
 
+(make-variable-buffer-local
+ (defvar se-mode-indent-size 2
+   "Indentation size in spaces."))
+
 (define-minor-mode se-mode
   "Toggle Structure Editing mode.
 \\{se-mode-map}"
@@ -213,11 +217,55 @@ evaluates hooks."
 	  finally (return (apply #'concat lines)))))
 
 (defun se-mode-pretty-term (term)
-  (princ (se-span-data (se-first-span term)))
   (se-mode-pretty-json 
    (append
     `((name . ,(se-term-name term))
       (start . ,(se-term-start term))
       (end . ,(se-term-end term)))
     (se-span-data (se-first-span term)))))
-    
+
+(defun se-mode-indentable-p (TERM)
+  "Returns indentable value of TERM, or nil if one doesn't
+exist."
+  (let* ((span (se-first-span TERM))
+	 (data (se-span-data span)))
+    (equal 't (cdr (assoc 'indentable data)))))
+
+(defun se-mode-term-count-lines (term)
+  "Counts lines spanned by term. Always returns at least one."
+  (1+ (abs (- (line-number-at-pos (se-term-end term))
+	      (line-number-at-pos (se-term-start term))))))
+
+(defun se-mode-indent-buffer ()
+  "Experimental feature. Indents current buffer.
+`se-mode-parse-tree' should have updated span information."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (se-each-line
+     (lambda ()
+       (let* ((path (se-find-point-path (point) se-mode-parse-tree))
+	      (indent-depth (count-if #'se-mode-indentable-p path))
+	      (indent-start nil))
+	 ;; don't indent the start of indentable spans
+	 (loop for node in path
+	       when (and (= (point) (se-term-start node))
+			 (se-mode-line-start-p (se-term-start node))
+			 (se-mode-indentable-p node))
+	       do (progn
+		    (decf indent-depth)
+		    (setq indent-start t)
+		    (return)))
+	 ;; don't indent if end of indentable span
+	 (when (not indent-start)
+	   (loop for node in path
+		 when (and (se-mode-indentable-p node)
+			   (not (se-same-line-p (se-term-start node)
+						(se-term-end node)))
+			   (se-same-line-p (point) (se-term-end node)))
+		 do (progn
+		      (decf indent-depth)
+		      (return))))
+	 ;; indent
+	 (when (> indent-depth 0)
+	   (indent-line-to (* indent-depth se-mode-indent-size))))))))

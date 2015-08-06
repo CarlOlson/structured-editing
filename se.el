@@ -105,7 +105,8 @@ to 100 would be before 1 to 20 because it encapsulates it."
 
 (defun se-term-child-p (child parent)
   "Checks if `child' should be encapsulated by `parent'. The
-bounds of `child' should be inside the bounds of `parent'."
+bounds of `child' should be inside the bounds of `parent'.
+Returns true if `child' and `parent' have the same bounds."
   (and
    (>= (se-term-start child)
        (se-term-start parent))

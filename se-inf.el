@@ -44,7 +44,7 @@ returned."
 
 (defun se-inf-parse-file (&rest file)
   "Sends parse request to current process. Sends the default
-request unless se-inf-parse-hook is non-nil. Uses the current
+request unless `se-inf-parse-hook' is non-nil. Uses the current
 buffer's file unless `file' is non-nil."
   (interactive)
   (if (null se-inf-parse-hook)

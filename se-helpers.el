@@ -1,6 +1,4 @@
 
-;; (eval-when-compile (require 'cl))
-
 (defmacro se-curry (f &rest args)
   "Returns curried function. `f' should be a function symbol."
   `(lambda (&rest more-args)
@@ -42,3 +40,47 @@ returns `rest'."
 ;; 	until (funcall pred x)
 ;; 	collecting x into partial
 ;; 	finally (return (cons partial xs))))
+
+(defmacro se-swap-minmax (MIN MAX)
+  "Swaps MIN and MAX if MIN is greater than MAX."
+  (let ((min (gensym)))
+    `(when (> ,MIN ,MAX)
+       (let ((,min ,MIN))
+	 (setq ,MIN ,MAX
+	       ,MAX ,min)))))
+
+(defun se-mode-line-start-p (&optional POINT)
+  "Returns true if POINT is the first non-whitespace character on
+the current line. Uses current point if POINT is nil."
+  (unless POINT (setq POINT (point)))
+  (save-excursion
+    (goto-char POINT)
+    (beginning-of-line)
+    (cond
+     ((= POINT (point)) t)
+     ((> POINT (point))
+      (re-search-forward "[\s\t]+" POINT t)
+      (and
+       (not (memq (char-after) (list ?\s ?\t)))
+       (= POINT (point))))
+     (t nil))))
+
+(defun se-same-line-p (A B)
+  "Returns true if points A and B are on the same line."
+  (= (line-number-at-pos A) (line-number-at-pos B)))
+
+(defun se-each-line (FUNCTION &optional BOUND)
+  "Goes to the start of each line and evaluates FUNCTION. Order
+starts at bottom and goes up to current line. If BOUND is non-nil
+evalutaions will start at BOUND instead of `point-max'."
+  (when (or (null BOUND) (> BOUND (point)))
+    (save-excursion
+      (beginning-of-line)
+      (let ((end-point (point))
+	    (line-move-visual nil))
+	(goto-char (or BOUND (point-max)))
+	(while (>= (point) end-point)
+	  (beginning-of-line)
+	  (save-excursion
+	    (funcall FUNCTION))
+	  (previous-line))))))
