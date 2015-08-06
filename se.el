@@ -71,7 +71,7 @@ instead. This will not flatten `term'."
     (se-node
      (se-term-end (se-node-parent term)))
     (cons
-     (se-term-end (last term)))))
+     (se-term-end (first (last term))))))
 
 (defun se-term-length (term)
   (- (se-term-end term)
