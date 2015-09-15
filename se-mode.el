@@ -173,6 +173,17 @@ previous selected, select it again."
      (:else
       (message "Selected term has no next.")))))
 
+(defun se-mode-select-name (NAME)
+  "Selects the first span named NAME. Starts at current node
+selection and moves through parents."
+  (se-mode-set-spans)
+  (let ((found (find NAME se-mode-not-selected :key #'se-term-name :test #'string=)))
+    (when found
+      (se-mode-update found)
+      (se-mode-select found)
+      (se-mode-expand-selected))
+    found))
+
 (defun se-mode-popup-window (name text)
   (when (get-buffer name)
     (kill-buffer name))

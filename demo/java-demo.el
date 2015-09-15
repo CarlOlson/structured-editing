@@ -19,6 +19,10 @@
   (interactive)
   (se-inf-ask (concat "PARSE-FILE\t" (buffer-file-name) "\tjava")))
 
+(defun se-java-select-method ()
+  (interactive)
+  (se-mode-select-name "classBodyDeclaration"))
+
 (find-file "InfJava.java")
 (se-mode)
 (se-inf-start
@@ -26,3 +30,4 @@
 		"java" "-cp" "*" "InfJava"))
 (setq se-mode-parse-tree se-mode-demo-tree)
 (add-hook 'se-inf-parse-hook #'se-java-parse-file)
+(define-key se-navigation-mode-map (kbd "m") #'se-java-select-method)
