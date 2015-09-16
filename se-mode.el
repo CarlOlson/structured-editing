@@ -16,11 +16,6 @@
    "Evaluates hooks when `se-mode-inspect' is called."))
 
 (make-variable-buffer-local
- (defvar se-navi-pre-state nil
-   "Holds buffer state before se-mode is activated for
-navigation."))
-
-(make-variable-buffer-local
  (defvar se-mode-indent-size 2
    "Indentation size in spaces."))
 
@@ -33,10 +28,23 @@ navigation."))
 	    (define-key map (kbd "M-s") #'se-navigation-mode)
 	    map))
 
+(defvar se-mode-nothing-map
+  (let* ((char-table (make-char-table 'keymap))
+	 (keymap `(keymap ,char-table)))
+    ;; all printable characters
+    (set-char-table-range char-table (cons ?\s 255) #'se-mode-nothing)
+    ;; backspace and tab
+    (set-char-table-range char-table (cons ?\b ?\t) #'se-mode-nothing)
+    ;; prevent quoted inserts
+    (define-key keymap [remap quoted-insert] #'se-mode-nothing)
+    (define-key keymap (kbd "<tab>") #'se-mode-nothing)
+    keymap)
+  "A keymap to make a buffer weakly read-only.")
+  
 (define-minor-mode se-navigation-mode
   :init-value nil
   :lighter " navi"
-  :keymap (let ((map (make-sparse-keymap)))
+  :keymap (let ((map (make-sparse-keymap se-mode-nothing-map)))
 	    (define-key map (kbd "c") #'se-inf-parse-file)
 	    (define-key map (kbd "q") (lambda () (interactive) (se-navigation-mode -1)))
 	    (define-key map (kbd "e") #'se-mode-expand-selected)
@@ -44,26 +52,10 @@ navigation."))
 	    (define-key map (kbd "i") #'se-mode-inspect)
 	    (define-key map (kbd "<left>") #'se-mode-select-previous)
 	    (define-key map (kbd "<right>") #'se-mode-select-next)
-	    map)
-  (when se-navigation-mode
-    (se-navi-push-state)
-    (read-only-mode 1))
-  (unless se-navigation-mode
-    (se-navi-pop-state)))
+	    map))
 
-(defun se-navi-state-put (key value)
-  (setq se-navi-pre-state
-	(plist-put se-navi-pre-state key value)))
-
-(defun se-navi-state-get (key)
-  (plist-get se-navi-pre-state key))
-
-(defun se-navi-push-state ()
-  (se-navi-state-put 'read-only (if buffer-read-only 1 -1)))
-
-(defun se-navi-pop-state ()
-  (read-only-mode (se-navi-state-get 'read-only)))
-
+(defun se-mode-nothing ()
+  (interactive))
 
 (defun se-mode-selected ()
   (first se-mode-selected))
