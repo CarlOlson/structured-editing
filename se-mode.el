@@ -19,14 +19,9 @@
  (defvar se-mode-indent-size 2
    "Indentation size in spaces."))
 
-(define-minor-mode se-mode
-  "Toggle Structure Editing mode.
-\\{se-mode-map}"
-  :init-value nil
-  :lighter " se"
-  :keymap (let ((map (make-sparse-keymap)))
-	    (define-key map (kbd "M-s") #'se-navigation-mode)
-	    map))
+(defvar se-navi-keymaps nil
+  "Association list for mapping major modes to navigation mode
+key bindings. Should not be accessed directly.")
 
 (defvar se-mode-nothing-map
   (let* ((char-table (make-char-table 'keymap))
@@ -41,6 +36,15 @@
     (define-key keymap [remap quoted-insert] #'se-mode-nothing)
     keymap)
   "A keymap to make a buffer weakly read-only.")
+
+(define-minor-mode se-mode
+  "Toggle Structure Editing mode.
+\\{se-mode-map}"
+  :init-value nil
+  :lighter " se"
+  :keymap (let ((map (make-sparse-keymap)))
+	    (define-key map (kbd "M-s") #'se-navigation-mode)
+	    map))
   
 (define-minor-mode se-navigation-mode
   :init-value nil
@@ -53,7 +57,31 @@
 	    (define-key map (kbd "i") #'se-mode-inspect)
 	    (define-key map (kbd "p") #'se-mode-select-previous)
 	    (define-key map (kbd "n") #'se-mode-select-next)
-	    map))
+	    map)
+  (when se-navigation-mode ;; activation
+    ;; setup major-mode specific keybindings
+    (make-local-variable 'minor-mode-overriding-map-alist)
+    (push (cons 'se-navigation-mode (se-navi-get-keymap major-mode))
+	  minor-mode-overriding-map-alist))
+  (unless se-navigation-mode ;; deactivation
+    (kill-local-variable 'minor-mode-overriding-map-alist)))
+
+(defun se-navi-define-key (MODE KEY DEF)
+  "When activating se-navigation mode in a buffer, activate some
+specific bindings for your major mode.
+
+MODE is a symbol to be matched to the value of `major-mode'.
+KEY and DEF work the same as with `define-key'."
+  (let ((keymap (se-navi-get-keymap MODE)))
+    (define-key keymap KEY DEF)))
+
+(defun se-navi-get-keymap (MODE)
+  (or (cdr (assoc MODE se-navi-keymaps))
+      (let* ((keymap (make-sparse-keymap))
+	     (entry (cons MODE keymap)))
+	(set-keymap-parent keymap se-navigation-mode-map)
+	(add-to-list 'se-navi-keymaps entry)
+	(cdr entry))))
 
 (defun se-mode-nothing ()
   (interactive))

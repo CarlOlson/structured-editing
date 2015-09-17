@@ -30,4 +30,5 @@
 		"java" "-cp" "*" "InfJava"))
 (setq se-mode-parse-tree se-mode-demo-tree)
 (add-hook 'se-inf-parse-hook #'se-java-parse-file)
-(define-key se-navigation-mode-map (kbd "m") #'se-java-select-method)
+
+(se-navi-define-key 'java-mode (kbd "m") #'se-java-select-method)
