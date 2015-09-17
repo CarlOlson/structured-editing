@@ -33,11 +33,12 @@
 	 (keymap `(keymap ,char-table)))
     ;; all printable characters
     (set-char-table-range char-table (cons ?\s 255) #'se-mode-nothing)
-    ;; backspace and tab
-    (set-char-table-range char-table (cons ?\b ?\t) #'se-mode-nothing)
+    ;; tab, backspace, enter
+    (define-key keymap (kbd "<tab>") #'se-mode-nothing)
+    (define-key keymap (kbd "DEL") #'se-mode-nothing)
+    (define-key keymap (kbd "RET") #'se-mode-nothing)
     ;; prevent quoted inserts
     (define-key keymap [remap quoted-insert] #'se-mode-nothing)
-    (define-key keymap (kbd "<tab>") #'se-mode-nothing)
     keymap)
   "A keymap to make a buffer weakly read-only.")
   
@@ -50,8 +51,8 @@
 	    (define-key map (kbd "e") #'se-mode-expand-selected)
 	    (define-key map (kbd "s") #'se-mode-shrink-selected)
 	    (define-key map (kbd "i") #'se-mode-inspect)
-	    (define-key map (kbd "<left>") #'se-mode-select-previous)
-	    (define-key map (kbd "<right>") #'se-mode-select-next)
+	    (define-key map (kbd "p") #'se-mode-select-previous)
+	    (define-key map (kbd "n") #'se-mode-select-next)
 	    map))
 
 (defun se-mode-nothing ()
