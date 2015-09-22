@@ -20,13 +20,16 @@ started with `start-process'."))
  (defvar se-inf-parse-hook nil
    "Functions to be evaluated upon parse request."))
 
-(defun se-inf-start (proc)
+(defun se-inf-start (PROC)
   "Initialize necessary variables to use se-inf
-functions. Expects `proc' to be the process returned from
-`start-process'. Should be called at the start of an `se-mode'."
+functions. Expects PROC to be the process returned from
+`start-process'. Should be called at the start of an
+`se-mode'."
+  (unless (process-get PROC 'se-inf-queue)
+    (process-put PROC 'se-inf-queue (tq-create PROC)))
   (setq
-   se-inf-process proc
-   se-inf-queue (tq-create se-inf-process)))
+   se-inf-process PROC
+   se-inf-queue (process-get PROC 'se-inf-queue)))
 
 (defun se-inf-stop ()
   "Should be called at the end of an `se-mode'."
