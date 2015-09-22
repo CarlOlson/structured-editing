@@ -1,4 +1,7 @@
 
+(require 'se)
+(require 'se-inf)
+
 (make-variable-buffer-local
  (defvar se-mode-selected nil
    "Variable for internal usage in se-mode."))
@@ -301,3 +304,5 @@ exist."
 	 ;; indent
 	 (when (> indent-depth 0)
 	   (indent-line-to (* indent-depth se-mode-indent-size))))))))
+
+(provide 'se-mode)

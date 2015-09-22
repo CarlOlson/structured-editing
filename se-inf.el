@@ -1,5 +1,6 @@
 
 (require 'tq)
+(require 'json)
 
 (make-variable-buffer-local
  (defvar se-inf-process nil
@@ -78,3 +79,5 @@ buffer's file unless `file' is non-nil."
 	json)
     (error
      (message "%s" (error-message-string err)))))
+
+(provide 'se-inf)

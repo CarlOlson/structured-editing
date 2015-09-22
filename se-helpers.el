@@ -84,3 +84,5 @@ evalutaions will start at BOUND instead of `point-max'."
 	  (save-excursion
 	    (funcall FUNCTION))
 	  (previous-line))))))
+
+(provide 'se-helpers)

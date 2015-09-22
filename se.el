@@ -1,8 +1,5 @@
 
-(load-library "json")
-(load-library "se-mode")
-(load-library "se-inf")
-(load-library "se-helpers")
+(require 'se-helpers)
 
 (defstruct
     (se-span
@@ -273,3 +270,5 @@ tested. Elements guaranteed to be in reverse order."
 		    (dolist (term tree) (helper term))))))
       (helper tree)
       acc)))
+
+(provide 'se)

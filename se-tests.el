@@ -1,8 +1,4 @@
 
-;; explicitly re-evaluate code
-(load-file "se-helpers.el")
-(load-file "se.el")
-
 (defun se--create-test-spans ()
   (mapcar
    (se-curry #'apply 'se-new-span)

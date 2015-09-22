@@ -1,10 +1,5 @@
 
-(load-file "../se.el")
-(load-file "../se-helpers.el")
-(load-file "../se-mode.el")
-(load-file "../se-inf.el")
-
-(load-file "../json.el/json.el")
+(require 'se-mode)
 
 (defun list-to-spans (list)
   (mapcar (lambda (x) (apply 'se-new-span x))

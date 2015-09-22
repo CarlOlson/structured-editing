@@ -8,8 +8,8 @@ information in order to better edit and navigate code.
 <<<point>>> A point is a single integer value corresponding to a
 position in a buffer. Points in buffers begin at one.
 
-<<<span>>> A label, a start, and end point of a syntactic region. End points are
-exclusive. A span may also contain extra information.
+<<<span>>> A label, a start, and end point of a syntactic region. End
+points are exclusive. A span may also contain extra information.
 
 <<<node>>> A parent span and a list of children spans. The parent span
 should encapsulate all children spans. The children spans should be
@@ -31,7 +31,6 @@ the se-mode files.
 (let ((se-path "<PATH-TO-SE>"))
   (add-to-list 'load-path se-path)
   (add-to-list 'load-path (concat se-path "/json.el")))
-(load-library "se")
 #+END_SRC
 *** Methods of Interest
 When viewed in Emacs, using `C-h f' on each line will bring up
