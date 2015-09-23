@@ -3,6 +3,10 @@
   "Association list for mapping major modes to navigation mode
 key bindings. Should not be accessed directly.")
 
+(make-variable-buffer-local
+ (defvar se-navi-current-keymap nil
+   "Lists current navigation mode's keymap."))
+
 (defvar se-navi-nothing-map
   (let* ((keymap (make-sparse-keymap)))
     ;; all printable characters
@@ -32,10 +36,10 @@ key bindings. Should not be accessed directly.")
 	    map)
   (when se-navigation-mode ;; activation
     ;; setup major-mode specific keybindings
+    (setq se-navi-current-keymap (se-navi-get-keymap major-mode))
     (make-local-variable 'minor-mode-overriding-map-alist)
-    (push (cons 'se-navigation-mode (se-navi-get-keymap major-mode))
-	  minor-mode-overriding-map-alist)
-    (setq se-navigation-mode-map (se-navi-get-keymap major-mode)))
+    (push (cons 'se-navigation-mode se-navi-current-keymap)
+	  minor-mode-overriding-map-alist))
   (unless se-navigation-mode ;; deactivation
     (kill-local-variable 'minor-mode-overriding-map-alist)))
 
@@ -58,11 +62,35 @@ and DEF work the same as with `define-key'."
     (define-key keymap KEY DEF)))
 
 (defun se-navi-get-keymap (MODE)
+  "Returns navigation mode keymap associated with major mode
+MODE. Navigation mode keymaps will vary from usage of
+`se-navi-define-key'."
   (or (cdr (assoc MODE se-navi-keymaps))
       (let* ((keymap (make-sparse-keymap))
 	     (entry (cons MODE keymap)))
 	(set-keymap-parent keymap se-navigation-mode-map)
 	(add-to-list 'se-navi-keymaps entry)
 	(cdr entry))))
+
+(defun se-navi-documentation-advice (ORIG FUNCTION &optional RAW)
+  "Advice for documentation. ORIG is the original `documentation'
+function. FUNCTION and RAW correspond to `documentation'
+arguments."
+  (cond
+   (RAW
+    (funcall ORIG FUNCTION RAW))
+   ((equal #'se-navigation-mode FUNCTION)
+    ;; buffer defined in `describe-mode' in emacs >=21.1
+    ;; using dynamic scoping is unwanted here, but most simple
+    (with-current-buffer (if (boundp 'buffer) buffer (buffer-name))
+      (substitute-command-keys
+       (replace-regexp-in-string
+	(regexp-quote "\\{se-navigation-mode-map}")
+	(regexp-quote "\\{se-navi-current-keymap}")
+	(documentation 'se-navigation-mode t)))))
+   (t
+    (funcall ORIG FUNCTION RAW))))
+
+(advice-add 'documentation :around #'se-navi-documentation-advice)
 
 (provide 'se-navi)
