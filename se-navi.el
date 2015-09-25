@@ -91,6 +91,7 @@ arguments."
    (t
     (funcall ORIG FUNCTION RAW))))
 
-(advice-add 'documentation :around #'se-navi-documentation-advice)
+(if (fboundp #'advice-add)
+    (advice-add 'documentation :around #'se-navi-documentation-advice))
 
 (provide 'se-navi)
