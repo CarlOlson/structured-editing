@@ -18,8 +18,8 @@ started with `start-process'."))
    "Stores callback function for `se-inf-ask'."))
 
 (make-variable-buffer-local
- (defvar se-inf-parse-hook nil
-   "Functions to be evaluated upon parse request."))
+ (defvar se-inf-parse-hook (list #'save-buffer)
+   "Functions to be evaluated before parse request."))
 
 (defun se-inf-start (PROC)
   "Initialize necessary variables to use se-inf
@@ -33,7 +33,8 @@ functions. Expects PROC to be the process returned from
    se-inf-queue (process-get PROC 'se-inf-queue)))
 
 (defun se-inf-stop ()
-  "Should be called at the end of an `se-mode'."
+  "Should be called at the end of an `se-mode'. This will kill
+the process, should be skipped if process is shared."
   (tq-close se-inf-queue)
   (kill-buffer (tq-buffer se-inf-queue)))
 
@@ -51,9 +52,8 @@ returned."
 request unless `se-inf-parse-hook' is non-nil. Uses the current
 buffer's file unless `file' is non-nil."
   (interactive)
-  (if (null se-inf-parse-hook)
-      (se-inf-ask (or file (buffer-file-name)))
-    (run-hooks 'se-inf-parse-hook)))
+  (run-hooks 'se-inf-parse-hook)
+  (se-inf-ask (or file (buffer-file-name))))
 
 (defun se-inf-get-spans (json)
   (cl-labels ((new-span (lst) ;; emacs 24.3 made `labels' obsolete
