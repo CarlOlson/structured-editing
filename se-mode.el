@@ -39,12 +39,11 @@
   "Clears all selected regions."
   (interactive)
   (setq se-mode-selected nil
-	se-mode-not-selected nil)
-  (when mark-active
-    (set-mark-command nil)))
+	se-mode-not-selected nil
+	mark-active nil))
 
 (defun se-mode-set-spans ()
-  (when (null mark-active)
+  (unless mark-active
     (se-mode-clear-selected))
   (cond
    ((null se-mode-parse-tree)
@@ -56,9 +55,9 @@
 	   (se-find-point-path (point) se-mode-parse-tree))))))
 
 (defun se-mode-mark-region (start end)
-  (goto-char end)
-  (set-mark-command nil)
-  (goto-char start))
+  (goto-char start)
+  (push-mark end)
+  (setq mark-active t))
 
 (defun se-mode-select (term)
   (se-mode-mark-region (se-term-start term) (se-term-end term)))
@@ -91,65 +90,55 @@ previous selected, select it again."
       (se-mode-select (se-mode-selected))
     (se-mode-clear-selected)))
 
-(defun se-mode-previous ()
-  (let ((selected (se-mode-selected))
+(cl-macrolet ((find (which)
+  `(let ((selected (se-mode-selected))
 	(nodes (if se-mode-not-selected
 		   (se-node-children (first se-mode-not-selected))
 		 se-mode-parse-tree)))
-    (loop for (first second . rest) on nodes
-	  when (null second) return nil
-	  when (se-term-equal-p second selected) return first)))
+    (loop for (prev next . rest) on nodes
+	  when (null next) return nil
+	  when (se-term-equal-p
+		,(if (equal which 'prev) 'next 'prev)
+		selected) return ,which))))
 
-(defun se-mode-select-previous ()
-  "Selects previous node in parse tree."
-  (interactive)
-  (se-mode-set-spans)
-  (let ((prev (se-mode-previous)))
-    (cond
-     (prev
-      (se-mode-update prev)
-      (se-mode-expand-selected))
-     ;; (se-mode-not-selected
-     ;;  (se-mode-expand-selected))
-     (:else
-      (message "Selected term has no previous.")))))
+  (defun se-mode-previous ()
+    "Return the node before the currently selected one."
+    (find prev))
 
-(defun se-mode-next ()
-  (let ((selected (se-mode-selected))
-	(nodes (if se-mode-not-selected
-		   (se-node-children (first se-mode-not-selected))
-		 se-mode-parse-tree)))
-    (loop for (first second . rest) on nodes
-	  when (null second) return nil
-	  when (se-term-equal-p first selected) return second)))
+  (defun se-mode-next ()
+    "Return the node after the currently selected one."
+    (find next)))
 
-(defun se-mode-select-next ()
-  "Selects next node is parse tree."
-  (interactive)
-  (se-mode-set-spans)
-  (let ((next (se-mode-next)))
-    (cond
-     (next
-      (se-mode-update next)
-      (se-mode-expand-selected))
-     ;; ((and (se-mode-selected)
-     ;; 	   (se-node-children (se-mode-selected)))
-     ;;  (se-mode-update (first (se-node-children (se-mode-selected))))
-     ;;  (se-mode-expand-selected))
-     ;; add ability to go around
-     (:else
-      (message "Selected term has no next.")))))
+(cl-macrolet ((select (how)
+  `(let ()
+     (se-mode-set-spans)
+     (let ((node ,how))
+       (when node
+	 (se-mode-update node)
+	 (se-mode-expand-selected)
+	 t)))))
+
+  (defun se-mode-select-previous ()
+    "Selects previous node in parse tree."
+    (interactive)
+    (unless (select (se-mode-previous))
+      (message "Selected term has no previous.")))
+
+  (defun se-mode-select-next ()
+    "Selects next node is parse tree."
+    (interactive)
+    (unless (select (se-mode-next))
+      (message "Selected term has no next."))))
 
 (defun se-mode-select-name (NAME)
   "Selects the first span named NAME. Starts at current node
 selection and moves through parents."
   (se-mode-set-spans)
-  (let ((found (find NAME se-mode-not-selected :key #'se-term-name :test #'string=)))
+  (let ((found (cl-find NAME se-mode-not-selected :key #'se-term-name :test #'string=)))
     (when found
-      (se-mode-update found)
-      (se-mode-select found)
-      (se-mode-expand-selected))
-    found))
+      (while (not (equal found (se-mode-selected)))
+	(se-mode-expand-selected))
+      found)))
 
 (defun se-mode-popup-window (name text)
   (when (get-buffer name)
