@@ -3,6 +3,10 @@
   "Association list for mapping major modes to navigation mode
 key bindings. Should not be accessed directly.")
 
+(defvar se-navi-quit-on-change t
+  "If non-nil, navigation mode will quit before a change is made
+to the buffer.")
+
 (make-variable-buffer-local
  (defvar se-navi-current-keymap nil
    "Lists current navigation mode's keymap."))
@@ -39,11 +43,15 @@ key bindings. Should not be accessed directly.")
     (setq se-navi-current-keymap (se-navi-get-keymap major-mode))
     (make-local-variable 'minor-mode-overriding-map-alist)
     (push (cons 'se-navigation-mode se-navi-current-keymap)
-	  minor-mode-overriding-map-alist))
+	  minor-mode-overriding-map-alist)
+    ;; quit on change
+    (when se-navi-quit-on-change
+      (add-hook 'before-change-functions #'se-navigation-mode-quit nil t)))
   (unless se-navigation-mode ;; deactivation
-    (kill-local-variable 'minor-mode-overriding-map-alist)))
+    (kill-local-variable 'minor-mode-overriding-map-alist)
+    (remove-hook 'before-change-functions #'se-navigation-mode-quit t)))
 
-(defun se-navigation-mode-quit ()
+(defun se-navigation-mode-quit (&rest args)
   "Quits navigation mode."
   (interactive)
   (se-navigation-mode -1))
