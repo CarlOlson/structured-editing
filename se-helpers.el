@@ -1,4 +1,6 @@
 
+(eval-when-compile (require 'cl))
+
 (defmacro se-curry (f &rest args)
   "Returns curried function. `f' should be a function symbol."
   `(lambda (&rest more-args)

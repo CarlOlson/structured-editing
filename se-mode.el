@@ -3,6 +3,8 @@
 (require 'se-navi)
 (require 'se-inf)
 
+(eval-when-compile (require 'cl))
+
 (make-variable-buffer-local
  (defvar se-mode-selected nil
    "Variable for internal usage in se-mode."))
@@ -220,7 +222,7 @@ exist."
     (se-each-line
      (lambda ()
        (let* ((path (se-find-point-path (point) se-mode-parse-tree))
-	      (indent-depth (count-if #'se-mode-indentable-p path))
+	      (indent-depth (cl-count-if #'se-mode-indentable-p path))
 	      (indent-start nil))
 	 ;; don't indent the start of indentable spans
 	 (loop for node in path

@@ -1,6 +1,8 @@
 
 (require 'se-helpers)
 
+(eval-when-compile (require 'cl))
+
 (defstruct
     (se-span
      (:constructor se-new-span (name start end &optional data)))
