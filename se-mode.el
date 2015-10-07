@@ -139,6 +139,11 @@ selection and moves through parents."
 	(se-mode-expand-selected))
       found)))
 
+(defun se-mode-goto-term (TERM)
+  "Centers window at start of TERM."
+  (goto-char (se-term-start TERM))
+  (recenter-top-bottom))
+
 (defun se-mode-popup-window (BUFFER-OR-NAME TEXT)
   (with-temp-buffer-window
    BUFFER-OR-NAME
