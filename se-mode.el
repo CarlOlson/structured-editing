@@ -45,14 +45,11 @@
 (defun se-mode-set-spans ()
   (unless mark-active
     (se-mode-clear-selected))
-  (cond
-   ((null se-mode-parse-tree)
-    'error)
-   ((and (null se-mode-selected)
-	 (null se-mode-not-selected))
+  (when (and (null se-mode-selected)
+	     (null se-mode-not-selected))
     (setq se-mode-not-selected
 	  (nreverse ;; non-destructive se methods should return new lists
-	   (se-find-point-path (point) se-mode-parse-tree))))))
+	   (se-find-point-path (point) se-mode-parse-tree)))))
 
 (defun se-mode-mark-region (start end)
   (goto-char start)
@@ -160,34 +157,47 @@ selection and moves through parents."
 default method when `se-mode-inspect-hook' is nil, otherwise
 evaluates hooks."
   (interactive)
+  (se-mode-set-spans)
   (cond
-   ((null (se-mode-selected)))
+   ((null (se-mode-selected))
+    (se-mode-popup-window
+     "*se*"
+     (se-mode-pretty-json (se-mode-overlay-info-at (point)))))
    ((null se-mode-inspect-hook)
     (se-mode-popup-window
      "*se*"
-     (se-mode-pretty-term (se-mode-selected))))
+     (se-mode-pretty-json (se-term-to-json (se-mode-selected)))))
    (:else
+    ;; buffer is killed to ensure feedback
+    (when (get-buffer "*se*" (kill-buffer "*se*")))
     (run-hooks 'se-mode-inspect-hook)))
   (setq deactivate-mark nil))
 
-(defun se-mode-pretty-json (json)
-  (let (max fstr)
-    (loop for (key . value) in json
-	  maximizing (length (format "%s" key)) into maxlen
-	  finally (setq max maxlen))
-    (setq fstr (format "%%%ds:\t%%s\n" max))
-    (loop for (key . value) in json
-	  do (setq key (capitalize (format "%s" key)))
-	  collecting (format fstr key value) into lines
-	  finally (return (apply #'concat lines)))))
+(defun se-mode-overlay-info-at (start &optional end)
+  (let ((get-info (lambda (overlay)
+		    (overlay-get overlay 'info))))
+    (apply #'append
+	   (mapcar get-info (if end (overlays-in start end)
+			      (overlays-at start))))))
 
-(defun se-mode-pretty-term (term)
-  (se-mode-pretty-json 
-   (append
-    `((name . ,(se-term-name term))
-      (start . ,(se-term-start term))
-      (end . ,(se-term-end term)))
-    (se-span-data (se-first-span term)))))
+(defun se-mode-pretty-json (json)
+  (when json
+    (let (max fstr)
+      (loop for (key . value) in json
+	    maximizing (length (format "%s" key)) into maxlen
+	    finally (setq max maxlen))
+      (setq fstr (format "%%%ds:\t%%s\n" max))
+      (loop for (key . value) in json
+	    do (setq key (capitalize (format "%s" key)))
+	    collecting (format fstr key value) into lines
+	    finally (return (apply #'concat lines))))))
+
+(defun se-term-to-json (term)
+  (append
+   `((name . ,(se-term-name term))
+     (start . ,(se-term-start term))
+     (end . ,(se-term-end term)))
+   (se-span-data (se-first-span term))))
 
 (defun se-mode-indentable-p (TERM)
   "Returns indentable value of TERM, or nil if one doesn't

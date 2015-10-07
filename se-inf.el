@@ -18,7 +18,7 @@ started with `start-process'."))
    "Stores callback function for `se-inf-ask'."))
 
 (make-variable-buffer-local
- (defvar se-inf-parse-hook (list #'save-buffer)
+ (defvar se-inf-parse-hook (list #'save-buffer #'se-inf-remove-overlays)
    "Functions to be evaluated before parse request."))
 
 (defun se-inf-start (PROC)
@@ -70,14 +70,36 @@ buffer's file unless `file' is non-nil."
   (when msg
     (message (format "Error: %s" msg))))
 
+(defun se-inf-get-error-span (json)
+  (let ((info (cdr (assoc 'error-span json))))
+    (when info
+      (apply #'se-new-span info))))
+
+(defun se-inf-process-error-span (span)
+  (when span
+    (se-inf-error-overlay span)))
+
 (defun se-inf-process-json-string (str)
   (condition-case err
       (let* ((json-array-type 'list)
 	     (json (json-read-from-string str)))
-	(se-inf-process-error (se-inf-get-error json) json)
 	(se-inf-process-spans (se-inf-get-spans json) json)
+	(se-inf-process-error (se-inf-get-error json) json)
+	(se-inf-process-error-span (se-inf-get-error-span json))
 	json)
     (error
      (message "%s" (error-message-string err)))))
+
+(defun se-inf-remove-overlays (&rest args)
+  (remove-overlays (point-min) (point-max)))
+
+(defun se-inf-error-overlay (span)
+  (let ((overlay (make-overlay (se-term-start span)
+			       (se-term-end span))))
+    (overlay-put overlay 'info (se-span-data (se-first-span span)))
+    (overlay-put overlay 'face "error")
+    (overlay-put overlay 'modification-hooks
+		 (list (lambda (overlay &rest args)
+			 (overlay-put overlay 'face nil))))))
 
 (provide 'se-inf)
