@@ -147,13 +147,6 @@ selection and moves through parents."
    (with-output-to-temp-buffer BUFFER-OR-NAME
      (when TEXT (princ TEXT)))))
 
-(defun se-mode-convert (s)
-  (typecase s
-    (string s)
-    (symbol
-     (format "%s" (funcall s (se-mode-selected))))
-    (t "")))
-
 (defun se-mode-inspect ()
   "Should displays information on currently selected term. Uses
 default method when `se-mode-inspect-hook' is nil, otherwise
@@ -171,7 +164,7 @@ evaluates hooks."
      (se-mode-pretty-json (se-term-to-json (se-mode-selected)))))
    (:else
     ;; buffer is killed to ensure feedback
-    (when (get-buffer "*se*" (kill-buffer "*se*")))
+    (when (get-buffer "*se*") (kill-buffer "*se*"))
     (run-hooks 'se-mode-inspect-hook)))
   (setq deactivate-mark nil))
 

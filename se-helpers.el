@@ -43,13 +43,13 @@ returns `rest'."
 ;; 	collecting x into partial
 ;; 	finally (return (cons partial xs))))
 
-(defmacro se-swap-minmax (MIN MAX)
-  "Swaps MIN and MAX if MIN is greater than MAX."
-  (let ((min (gensym)))
-    `(when (> ,MIN ,MAX)
-       (let ((,min ,MIN))
-	 (setq ,MIN ,MAX
-	       ,MAX ,min)))))
+;; (defmacro se-swap-minmax (MIN MAX)
+;;   "Swaps MIN and MAX if MIN is greater than MAX."
+;;   (let ((min (gensym)))
+;;     `(when (> ,MIN ,MAX)
+;;        (let ((,min ,MIN))
+;; 	 (setq ,MIN ,MAX
+;; 	       ,MAX ,min)))))
 
 (defun se-mode-line-start-p (&optional POINT)
   "Returns true if POINT is the first non-whitespace character on
@@ -85,6 +85,6 @@ evalutaions will start at BOUND instead of `point-max'."
 	  (beginning-of-line)
 	  (save-excursion
 	    (funcall FUNCTION))
-	  (previous-line))))))
+	  (forward-line -1))))))
 
 (provide 'se-helpers)
