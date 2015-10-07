@@ -171,7 +171,7 @@ evaluates hooks."
      (se-mode-pretty-json (se-term-to-json (se-mode-selected)))))
    (:else
     ;; buffer is killed to ensure feedback
-    (when (get-buffer "*se*" (kill-buffer "*se*")))
+    (when (get-buffer "*se*") (kill-buffer "*se*"))
     (run-hooks 'se-mode-inspect-hook)))
   (setq deactivate-mark nil))
 

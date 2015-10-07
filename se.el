@@ -216,11 +216,12 @@ of `term' isn't kept."
 	   while (and second (se-term-before-p second term))
 	   finally (return (append before (se-find-before first)))))))
 
-(defun spans-find-between (span1 span2 tree)
-  (let (start-span-found end-span-found)
-    (if (span< span1 span2)
-	(spans-before-span span2 (spans-after-span span1 tree)))
-    (spans-before-span span1 (spans-after-span span2 tree))))
+;; outdated
+;; (defun spans-find-between (span1 span2 tree)
+;;   (let (start-span-found end-span-found)
+;;     (if (span< span1 span2)
+;; 	(spans-before-span span2 (spans-after-span span1 tree)))
+;;     (spans-before-span span1 (spans-after-span span2 tree))))
 
 (defun se-span-add-offset (offset span)
   (incf (se-span-start span) offset)
@@ -246,7 +247,7 @@ of `term' isn't kept."
        node))
     (se-node
      (se-cons-t
-      (se-term-expand-to (se-node-span node) point)
+      (se-term-expand-to (se-node-parent node) point)
       (se-term-expand-to (se-node-children node) point)))
     (cons
      (se-cons-t
