@@ -140,15 +140,13 @@ selection and moves through parents."
 	(se-mode-expand-selected))
       found)))
 
-(defun se-mode-popup-window (name text)
-  (when (get-buffer name)
-    (kill-buffer name))
-  (let* ((popup-buffer (get-buffer-create name))
-	 (popup-window (display-buffer popup-buffer)))
-    (with-current-buffer popup-buffer
-      (erase-buffer)
-      (insert text)
-      (shrink-window-if-larger-than-buffer popup-window))))
+(defun se-mode-popup-window (BUFFER-OR-NAME TEXT)
+  (with-temp-buffer-window
+   BUFFER-OR-NAME
+   '(display-buffer-below-selected
+     . ((window-height . shrink-window-if-larger-than-buffer)))
+   (with-output-to-temp-buffer BUFFER-OR-NAME
+     (when TEXT (princ TEXT)))))
 
 (defun se-mode-convert (s)
   (typecase s
