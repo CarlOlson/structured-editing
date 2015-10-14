@@ -274,4 +274,17 @@ tested. Elements guaranteed to be in reverse order."
       (helper tree)
       acc)))
 
+(defun se-mapc (FUNCTION TERM)
+  "Apply FUNCTION to each span in TERM for side effects only."
+  (typecase TERM
+    (se-span
+     (funcall FUNCTION TERM))
+    (se-node
+     (se-mapc FUNCTION (se-node-parent TERM))
+     (se-mapc FUNCTION (se-node-children TERM)))
+    (cons
+     (dolist (node TERM)
+       (se-mapc FUNCTION node)))))
+
+
 (provide 'se)
