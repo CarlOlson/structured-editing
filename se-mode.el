@@ -25,6 +25,9 @@
  (defvar se-mode-indent-size 2
    "Indentation size in spaces."))
 
+(defvar se-mode-last-popup-window nil
+  "Holds last window `se-mode-popup-window' created.")
+
 (define-minor-mode se-mode
   "Toggle Structure Editing mode.
 \\{se-mode-map}"
@@ -149,8 +152,16 @@ selection and moves through parents."
    BUFFER-OR-NAME
    '(display-buffer-below-selected
      . ((window-height . shrink-window-if-larger-than-buffer)))
-   (with-output-to-temp-buffer BUFFER-OR-NAME
-     (when TEXT (princ TEXT)))))
+   #'(lambda (window _) (setq se-mode-last-popup-window window))
+   (princ TEXT))
+  (with-current-buffer BUFFER-OR-NAME
+    (special-mode)))
+
+(defun se-mode-inspect-destroy ()
+  "Suffix chosen to match default keybinding 'd'."
+  (interactive)
+  (when se-mode-last-popup-window
+    (quit-window t se-mode-last-popup-window)))
 
 (defun se-mode-inspect ()
   "Should displays information on currently selected term. Uses
