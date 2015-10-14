@@ -35,8 +35,11 @@ to the buffer.")
 	    (define-key map (kbd "e") #'se-mode-expand-selected)
 	    (define-key map (kbd "s") #'se-mode-shrink-selected)
 	    (define-key map (kbd "i") #'se-mode-inspect)
+	    (define-key map (kbd "d") #'se-mode-inspect-destroy)
 	    (define-key map (kbd "p") #'se-mode-select-previous)
 	    (define-key map (kbd "n") #'se-mode-select-next)
+	    (define-key map (kbd "w") #'copy-region-as-kill)
+	    (define-key map (kbd "<tab>") #'back-to-indentation)
 	    map)
   (when se-navigation-mode ;; activation
     ;; setup major-mode specific keybindings
