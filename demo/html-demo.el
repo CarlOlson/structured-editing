@@ -1,25 +1,26 @@
 
 (require 'se-mode)
-
-(defun list-to-spans (list)
-  (mapcar (lambda (x) (apply 'se-new-span x))
-	  list))
-
-(defconst se-mode-demo-tree
-  (let ((json-array-type 'list))
-    (se-create-parse-tree
-     (list-to-spans (json-read-file "html_spans")))))
+(require 'se-highlight)
 
 (defun se-html-parse-file ()
   (interactive)
+  (run-hooks 'se-inf-parse-hook)
   (se-inf-ask (concat "PARSE-FILE\t" (buffer-file-name) "\thtml")))
 
 (find-file "example.html")
 (se-mode)
-(unless se-inf-parse-hook
-  (se-inf-start
-   (start-process "html-demo" "*se-mode: html-demo*"
-		  "java" "-cp" "*" "InfJava")))
-(setq se-mode-parse-tree se-mode-demo-tree)
-(add-hook 'se-inf-parse-hook #'se-html-parse-file)
-(define-key se-mode-map (kbd "<tab>") #'se-mode-indent-buffer)
+
+(se-inf-start
+ (or (get-buffer-process "*se-mode: html-demo*")
+     (start-process "html-demo" "*se-mode: html-demo*"
+		    "java" "-cp" "*" "InfJava")))
+
+(setq se-highlight-font-map
+      '((string . ("literal" "htmlChardata"))
+	(type . ("formalParameterList"))
+	(function-name . ("htmlTagName" "singleExpression")))
+      )
+
+(se-navi-define-key 'html-mode (kbd "c") #'se-html-parse-file)
+(se-navi-define-key 'html-mode (kbd "h") #'se-highlight)
+;; (se-navi-define-key 'html-mode (kbd "<tab>") #'se-mode-indent-buffer)
