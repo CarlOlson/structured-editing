@@ -28,6 +28,10 @@
 (defvar se-mode-last-popup-window nil
   "Holds last window `se-mode-popup-window' created.")
 
+(defvar se-mode-expand-skips-whitespace nil
+  "When non-nil uses `se-mode-skip-beginning-whitespace' before
+`se-mode-expand-selected'.")
+
 (define-minor-mode se-mode
   "Toggle Structure Editing mode.
 \\{se-mode-map}"
@@ -69,10 +73,23 @@
     (setq se-mode-selected nil
 	  se-mode-not-selected (reverse path))))
 
+(defun se-mode-skip-beginning-whitespace ()
+  "Moves point forward to first non-whitespace character on
+current line. Point doesn't move if already past it."
+  (interactive)
+  (let (indentation)
+    (save-excursion
+      (back-to-indentation)
+      (setq indentation (point)))
+    (when (> indentation (point))
+      (goto-char indentation))))
+
 (defun se-mode-expand-selected ()
   "In se-mode, selects smallest span around point. If a region is
 already selected, it is expanded to its parent region."
   (interactive)
+  (when se-mode-expand-skips-whitespace
+    (se-mode-skip-beginning-whitespace))
   (se-mode-set-spans)
   (cond
    ((null se-mode-not-selected)
