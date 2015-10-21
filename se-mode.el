@@ -61,7 +61,7 @@
   (push-mark end)
   (setq mark-active t))
 
-(defun se-mode-select (term)
+(defun se-mode-mark-term (term)
   (se-mode-mark-region (se-term-start term) (se-term-end term)))
 
 (defun se-mode-update (term)
@@ -79,7 +79,7 @@ already selected, it is expanded to its parent region."
     (se-mode-mark-region (point-min) (point-max)))
    (:else
     (push (pop se-mode-not-selected) se-mode-selected)
-    (se-mode-select (se-mode-selected)))))
+    (se-mode-mark-term (se-mode-selected)))))
 
 (defun se-mode-shrink-selected ()
   "In se-mode, deselect current region. If a smaller region was
@@ -89,7 +89,7 @@ previous selected, select it again."
   (when se-mode-selected
     (push (pop se-mode-selected) se-mode-not-selected))
   (if se-mode-selected
-      (se-mode-select (se-mode-selected))
+      (se-mode-mark-term (se-mode-selected))
     (se-mode-clear-selected)))
 
 (cl-macrolet ((find (which)
