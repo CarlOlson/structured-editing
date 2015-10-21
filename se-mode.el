@@ -111,26 +111,25 @@ previous selected, select it again."
     "Return the node after the currently selected one."
     (find next)))
 
-(cl-macrolet ((select (how)
-  `(let ()
-     (se-mode-set-spans)
-     (let ((node ,how))
-       (when node
-	 (se-mode-update node)
-	 (se-mode-expand-selected)
-	 t)))))
+(defun se-mode-select (term)
+  "Updates selection path and selects region."
+  (se-mode-set-spans)
+  (when term
+    (se-mode-update term)
+    (se-mode-expand-selected)
+    t))
 
-  (defun se-mode-select-previous ()
-    "Selects previous node in parse tree."
-    (interactive)
-    (unless (select (se-mode-previous))
-      (message "Selected term has no previous.")))
+(defun se-mode-select-previous ()
+  "Selects previous node in parse tree."
+  (interactive)
+  (unless (se-mode-select (se-mode-previous))
+    (message "Selected term has no previous.")))
 
-  (defun se-mode-select-next ()
-    "Selects next node is parse tree."
-    (interactive)
-    (unless (select (se-mode-next))
-      (message "Selected term has no next."))))
+(defun se-mode-select-next ()
+  "Selects next node is parse tree."
+  (interactive)
+  (unless (se-mode-select (se-mode-next))
+    (message "Selected term has no next.")))
 
 (defun se-mode-select-name (NAME)
   "Selects the first span named NAME. Starts at current node
