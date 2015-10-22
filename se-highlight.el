@@ -11,8 +11,10 @@ se-span names to give that face."))
 (defun se-highlight ()
   (interactive)
   (when se-highlight-font-map
-    (font-lock-mode -1)
-    (se-mapc #'se-highlight-term se-mode-parse-tree)))
+    (let ((modified (buffer-modified-p)))
+      (font-lock-mode -1)
+      (se-mapc #'se-highlight-term se-mode-parse-tree)
+      (set-buffer-modified-p modified))))
 
 (defun se-highlight-term (TERM)
   (let ((name (se-term-name TERM))
