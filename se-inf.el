@@ -21,7 +21,7 @@ response given as only argument. If `se-inf-response-is-json' is
 non-nil the response is parsed as JSON first."))
 
 (make-variable-buffer-local
- (defvar se-inf-parse-hook (list #'save-buffer #'se-inf-remove-overlays)
+ (defvar se-inf-parse-hook (list #'se-inf-save-if-modified #'se-inf-remove-overlays)
    "Functions to be evaluated before parse request."))
 
 (make-variable-buffer-local
@@ -73,6 +73,12 @@ buffer's file unless `file' is non-nil."
   (interactive)
   (run-hooks 'se-inf-parse-hook)
   (se-inf-ask (or file (buffer-file-name))))
+
+(defun se-inf-save-if-modified ()
+  "Save the buffer only if it is modified."
+  (interactive)
+  (when (buffer-modified-p)
+    (save-buffer)))
 
 (defun se-inf-get-spans (json)
   (cl-labels ((new-span (lst) ;; emacs 24.3 made `labels' obsolete
