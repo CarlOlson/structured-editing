@@ -62,8 +62,7 @@
 
 (defun se-mode-mark-region (start end)
   (goto-char start)
-  (push-mark end)
-  (setq mark-active t))
+  (push-mark end t t))
 
 (defun se-mode-mark-term (term)
   (se-mode-mark-region (se-term-start term) (se-term-end term)))
