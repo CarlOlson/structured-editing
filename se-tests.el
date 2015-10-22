@@ -113,6 +113,11 @@
     (should (= 2 (length (se-find-point-path 50 tree))))
     ))
 
+(ert-deftest se-find-point ()
+  "should find parent node if children don't contain point"
+  (let ((tree (se--create-test-tree)))
+    (should (se-find-point 15 tree))))
+
 (ert-deftest se-iteration ()
   "Test common iteration methods work."
   ;; se-filter

@@ -142,9 +142,8 @@ formatted."
   (typecase tree
     (se-node
      (when (se-point-in-term-p point (se-node-parent tree))
-       (if (se-node-children tree)
-	   (se-find-point point (se-node-children tree))
-	 tree)))
+       (or (se-find-point point (se-node-children tree))
+	   tree)))
     (sequence
      (se-map-1 (se-curry #'se-find-point point) tree))))
 
