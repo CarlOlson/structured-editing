@@ -25,7 +25,6 @@ se-span names to give that face."))
 	       when (member (se-span-name TERM) names)
 	       do (return face))))
     (when face
-      (message "%s as %s" face name)
       (put-text-property start end 'face (se-highlight-to-face face) nil))))
 
 (defun se-highlight-to-face (FACE)
@@ -37,7 +36,6 @@ otherwise returns FACE."
     (if (not (stringp FACE))
 	orig
       (setq FACE (intern (concat "font-lock-" FACE "-face")))
-      (message "%s" FACE)
       (if (and (boundp FACE)
 	       (symbol-value FACE))
 	  FACE orig))))
