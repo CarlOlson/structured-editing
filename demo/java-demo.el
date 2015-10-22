@@ -18,6 +18,23 @@
      (start-process "java-demo" "*se-mode: java-demo*"
 		    "java" "-cp" "*" "InfJava")))
 
-(add-hook 'se-navigation-mode-hook #'se-java-parse-file)
+(add-hook 'se-navigation-mode-hook
+	  (lambda ()
+	    (when se-navigation-mode (se-java-parse-file))))
 (se-navi-define-key 'java-mode (kbd "c") #'se-java-parse-file)
 (se-navi-define-key 'java-mode (kbd "m") #'se-java-select-method)
+
+(setq se-mode-expand-skips-whitespace t)
+
+;; eldoc example
+(progn
+  (defun se-java-documentation ()
+    (when se-navigation-mode
+      (let ((found (se-find-point (point) se-mode-parse-tree)))
+	(when found
+	  (se-term-name found)))))
+
+  (set (make-local-variable 'eldoc-documentation-function)
+       #'se-java-documentation)
+
+  (eldoc-mode))
