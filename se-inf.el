@@ -2,6 +2,8 @@
 (require 'tq)
 (require 'json)
 
+(eval-when-compile (require 'cl))
+
 (make-variable-buffer-local
  (defvar se-inf-process nil
    "Holds process for current buffer in se-mode. Processes are
@@ -29,13 +31,17 @@ non-nil the response is parsed as JSON first."))
    "Non-nil if `se-inf-process' should returns json. See
 `se-inf-response-hook'."))
 
-(defun se-inf-start (PROC)
+(defun se-inf-start (PROC &optional NO-AUTO-KILL)
   "Initialize necessary variables to use se-inf
 functions. Expects PROC to be the process returned from
 `start-process'. Should be called at the start of an
-`se-mode'."
+`se-mode'.
+
+When NO-AUTO-KILL is nil the user will not be queried about PROC
+upon exiting emacs."
   (unless (process-get PROC 'se-inf-queue)
-    (process-put PROC 'se-inf-queue (tq-create PROC)))
+    (process-put PROC 'se-inf-queue (tq-create PROC))
+    (process-put PROC 'se-inf-auto-kill (not NO-AUTO-KILL)))
   (setq
    se-inf-process PROC
    se-inf-queue (process-get PROC 'se-inf-queue)))
@@ -119,5 +125,16 @@ buffer's file unless `file' is non-nil."
     (overlay-put overlay 'modification-hooks
 		 (list (lambda (overlay &rest args)
 			 (overlay-put overlay 'face nil))))))
+
+(defun se-inf-kill-emacs-advice (ORIG &optional ARG)
+  "Don't query about killing processes if they have
+`se-inf-auto-kill' set to a non-nil value."
+  (let ((non-auto-kill-procs
+	 (cl-remove-if (lambda (proc) (process-get proc 'se-inf-auto-kill)) (process-list))))
+    (cl-letf (((symbol-function 'process-list) (lambda () non-auto-kill-procs)))
+      (funcall ORIG ARG))))
+
+(if (fboundp #'advice-add)
+    (advice-add #'save-buffers-kill-emacs :around #'se-inf-kill-emacs-advice))
 
 (provide 'se-inf)
