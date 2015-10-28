@@ -52,14 +52,13 @@ the process, should be skipped if process is shared."
   (tq-close se-inf-queue)
   (kill-buffer (tq-buffer se-inf-queue)))
 
-(defun se-inf-ask (question)
+(defun se-inf-ask (question &optional FN)
   "Send a message to the current `se-inf-process'. Question will
-be terminated with a new line. Calls function stored inside
-`se-inf-process-response' when a new line terminated response is
-returned."
+be terminated with a new line. Calls FN or
+`se-inf-process-response' when a one line response is returned."
   (unless (string-suffix-p "\n" question)
     (setq question (concat question "\n")))
-  (tq-enqueue se-inf-queue question "\n" (buffer-name) #'se-inf-process-response))
+  (tq-enqueue se-inf-queue question "\n" (buffer-name) (or FN #'se-inf-process-response)))
 
 (defun se-inf-process-response (CLOSURE RESPONSE)
   (condition-case err
