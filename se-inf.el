@@ -91,8 +91,9 @@ buffer's file unless `file' is non-nil."
     (mapcar #'new-span (cdr (assoc 'spans json)))))
 
 (defun se-inf-process-spans (json)
-  (setq se-mode-parse-tree
-	(se-create-parse-tree (se-inf-get-spans json))))
+  (when (se-inf-get-spans json)
+    (setq se-mode-parse-tree
+	  (se-create-parse-tree (se-inf-get-spans json)))))
 
 (defun se-inf-get-error (json)
   (cdr (assoc 'error json)))
