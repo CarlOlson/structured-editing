@@ -13,6 +13,12 @@
      (:constructor se-new-node (parent children)))
      parent children)
 
+(defun se-create-spans (LIST)
+  "Creates a list of spans from a list of lists. Each sub list
+with elements corresponding to `so-new-span' arguments."
+  (cl-labels ((new-span (lst) (apply #'se-new-span lst)))
+    (mapcar #'new-span LIST)))
+
 (defun se-flatten (tree)
   "Flattens a tree of nodes, spans, and lists into a single list
 of spans. This keeps the order of elements but is inefficient."

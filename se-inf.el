@@ -86,14 +86,14 @@ buffer's file unless `file' is non-nil."
     (save-buffer)))
 
 (defun se-inf-get-spans (json)
-  (cl-labels ((new-span (lst) ;; emacs 24.3 made `labels' obsolete
-			(apply #'se-new-span lst)))
-    (mapcar #'new-span (cdr (assoc 'spans json)))))
+  (cdr (assoc 'spans json)))
 
 (defun se-inf-process-spans (json)
   (when (se-inf-get-spans json)
     (setq se-mode-parse-tree
-	  (se-create-parse-tree (se-inf-get-spans json)))))
+	  (se-create-parse-tree
+	   (se-create-spans
+	    (se-inf-get-spans json))))))
 
 (defun se-inf-get-error (json)
   (cdr (assoc 'error json)))
