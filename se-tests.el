@@ -70,13 +70,22 @@
 
 (ert-deftest se-parse-tree ()
   "Test parse tree creation."
+  (should (se--create-test-tree))
+  (should (equal (sort (se--create-test-spans) #'se-term-before-p)
+		 (se-flatten (se--create-test-tree)))))
+
+(ert-deftest se-parse-tree-regression1 ()
+  "Parse tree should not require pre-sorted spans."
+  (should (se-create-parse-tree
+	   (list (se-new-span "L1" 20 30)
+		 (se-new-span "L1"  1 10)))))
+
+(ert-deftest se-parse-tree-regression2 ()
+  "Parse tree should not allow overlapping spans."
+  ;; Currently fails, debating if necessary test
   (let ((bad-span (se-new-span "" 19 21)))
-    (should (se--create-test-tree))
     (should-not (se-create-parse-tree
-		 (cons bad-span (se--create-test-spans))))
-    (should (equal (sort (se--create-test-spans) #'se-term-before-p)
-		   (se-flatten (se--create-test-tree))))
-    ))
+		 (cons bad-span (se--create-test-spans))))))
 
 (ert-deftest se-find-methods ()
   (let* ((tree (se--create-test-tree))

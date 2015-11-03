@@ -118,11 +118,10 @@ state of spans to be sorted. Returns nil if data is ill
 formatted."
   ;; `copy-list' could be used; however, it isn't expected a user will
   ;; reuse a span list (or care if it becomes sorted).
-  (let ((spans lst)
-	(parents nil)
-	(len (length lst)))
-    (sort spans #'se-term-before-p)
-    (when (= len (length lst)) (se-sorted-spans-to-tree))))
+  (let ((len (length lst))
+	(spans (sort lst #'se-term-before-p))
+	(parents nil))
+    (se-sorted-spans-to-tree)))
 
 (defun se-sorted-spans-to-tree ()
   (cond
