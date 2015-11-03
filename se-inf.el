@@ -101,7 +101,7 @@ buffer's file unless `file' is non-nil."
 (defun se-inf-process-error (json)
   (let ((msg (se-inf-get-error json)))
     (when msg
-      (message (format "Error: %s" msg)))))
+      (message "Error: %s" msg))))
 
 (defun se-inf-get-error-span (json)
   (let ((info (cdr (assoc 'error-span json))))
