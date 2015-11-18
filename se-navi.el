@@ -38,6 +38,7 @@ to the buffer.")
 	    (define-key map (kbd "d") #'se-mode-inspect-destroy)
 	    (define-key map (kbd "p") #'se-mode-select-previous)
 	    (define-key map (kbd "n") #'se-mode-select-next)
+	    (define-key map (kbd "h") #'se-navi-help)
 	    (define-key map (kbd "w") #'copy-region-as-kill)
 	    (define-key map (kbd "<tab>") #'back-to-indentation)
 	    map)
@@ -82,6 +83,15 @@ MODE. Navigation mode keymaps will vary from usage of
 	(set-keymap-parent keymap se-navigation-mode-map)
 	(add-to-list 'se-navi-keymaps entry)
 	(cdr entry))))
+
+(defun se-navi-help ()
+  "Display navigation mode's keybindings."
+  (interactive)
+  (describe-mode)
+  (with-current-buffer "*Help*"
+    (goto-char (point-min))
+    (when (search-forward "Se-Navigation" nil t)
+      (push-button (1- (point))))))
 
 (defun se-navi-documentation-advice (ORIG FUNCTION &optional RAW)
   "Advice for documentation. ORIG is the original `documentation'
