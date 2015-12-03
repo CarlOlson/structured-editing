@@ -232,11 +232,6 @@ exist."
 	 (data (se-span-data span)))
     (equal 't (cdr (assoc 'indentable data)))))
 
-(defun se-mode-term-count-lines (term)
-  "Counts lines spanned by term. Always returns at least one."
-  (1+ (abs (- (line-number-at-pos (se-term-end term))
-	      (line-number-at-pos (se-term-start term))))))
-
 (defun se-mode-indent-buffer ()
   "Experimental feature. Indents current buffer.
 `se-mode-parse-tree' should have updated span information."
@@ -251,7 +246,7 @@ exist."
 	 ;; don't indent the start of indentable spans
 	 (loop for node in path
 	       when (and (= (point) (se-term-start node))
-			 (se-mode-line-start-p (se-term-start node))
+			 (se-line-start-p (se-term-start node))
 			 (se-mode-indentable-p node))
 	       do (progn
 		    (decf indent-depth)

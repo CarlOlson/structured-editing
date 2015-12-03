@@ -18,54 +18,13 @@ transformed element."
   (loop while list
 	thereis (funcall fn (pop list))))
 
-(defun se-cons-t (first rest)
-  "Conses `first' to `rest' if `first' is non-nil, otherwise
-returns `rest'."
-  (if first
-      (cons first rest)
-    rest))
-
-;; (defun se-split-list (delimiter alist)
-;;   (split-list-if (lambda (x) (equal x delimiter)) alist))
-
-;; (defun se-split-list-1 (delimiter alist)
-;;   (split-list-if-1 (lambda (x) (equal x delimiter)) alist))
-
-;; (defun se-split-list-if (pred alist)
-;;   (when alist
-;;     (let ((split (split-list-if-1 pred alist)))
-;;       (cons (first split)
-;; 	    (split-list-if pred (rest split))))))
-
-;; (defun se-split-list-if-1 (pred alist)
-;;   (loop for (x . xs) on alist
-;; 	until (funcall pred x)
-;; 	collecting x into partial
-;; 	finally (return (cons partial xs))))
-
-;; (defmacro se-swap-minmax (MIN MAX)
-;;   "Swaps MIN and MAX if MIN is greater than MAX."
-;;   (let ((min (gensym)))
-;;     `(when (> ,MIN ,MAX)
-;;        (let ((,min ,MIN))
-;; 	 (setq ,MIN ,MAX
-;; 	       ,MAX ,min)))))
-
-(defun se-mode-line-start-p (&optional POINT)
+(defun se-line-start-p (&optional POINT)
   "Returns true if POINT is the first non-whitespace character on
 the current line. Uses current point if POINT is nil."
   (unless POINT (setq POINT (point)))
   (save-excursion
-    (goto-char POINT)
-    (beginning-of-line)
-    (cond
-     ((= POINT (point)) t)
-     ((> POINT (point))
-      (re-search-forward "[\s\t]+" POINT t)
-      (and
-       (not (memq (char-after) (list ?\s ?\t)))
-       (= POINT (point))))
-     (t nil))))
+    (back-to-indentation)
+    (= (point) POINT)))
 
 (defun se-same-line-p (A B)
   "Returns true if points A and B are on the same line."

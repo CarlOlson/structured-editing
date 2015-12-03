@@ -192,6 +192,7 @@ latter. Returns `nil' if no node matches."
     (sequence
      (se-map-1 (se-curry #'se-find-span-path span) tree))))
 
+;; dead code
 (defun se-find-after (term tree)
   "Collects all nodes in `tree' after reaching `term'. The node
 of `term' isn't kept, nor its children."
@@ -207,57 +208,7 @@ of `term' isn't kept, nor its children."
 	   do (return (append (se-find-after term first)
 			      (cons second nodes)))))))
 
-;; currently trying to determine expected functionality
-(defun se-find-before (term tree)
-  "Collects all nodes in `tree' until reaching `term'. The node
-of `term' isn't kept."
-  (error "Method `se-find-before' not implemented.")
-  (typecase tree
-    (se-node)
-    (sequence
-     (loop for (first second . nodes) in tree
-	   collecting first into before
-	   while (and second (se-term-before-p second term))
-	   finally (return (append before (se-find-before first)))))))
-
-;; outdated
-;; (defun spans-find-between (span1 span2 tree)
-;;   (let (start-span-found end-span-found)
-;;     (if (span< span1 span2)
-;; 	(spans-before-span span2 (spans-after-span span1 tree)))
-;;     (spans-before-span span1 (spans-after-span span2 tree))))
-
-(defun se-span-add-offset (offset span)
-  (incf (se-span-start span) offset)
-  (incf (se-span-end span) offset))
-
-(defun se-term-add-offset (offset node)
-  (typecase node
-    (se-span
-     (se-span-add-offset node offset))
-    (se-node
-     (se-span-add-offset (se-node-parent node) offset)
-     (se-term-add-offset (se-node-children node) offset))
-    (cons
-     (se-term-add-offset (first node) offset)
-     (se-term-add-offset (rest node) offset))))
-
-(defun se-term-expand-to (node point)
-  (error "Method `se-node-expand-to' not functional.")
-  (typecase node
-    (se-span
-     (when (< (se-span-end node) point)
-       (setf (se-span-end node) point)
-       node))
-    (se-node
-     (se-cons-t
-      (se-term-expand-to (se-node-parent node) point)
-      (se-term-expand-to (se-node-children node) point)))
-    (cons
-     (se-cons-t
-      (se-term-expand-to (first node) point)
-      (se-term-expand-to (rest node) point)))))
-
+;; dead code
 (defun se-filter (pred tree)
   "Filters spans, nodes, and trees. `pred' should accept a single
 term, if `nil' is returned the node isn't kept. A list of nodes
@@ -289,6 +240,5 @@ tested. Elements guaranteed to be in reverse order."
     (cons
      (dolist (node TERM)
        (se-mapc FUNCTION node)))))
-
 
 (provide 'se)

@@ -14,16 +14,6 @@
 (defun se--create-test-tree ()
   (se-create-parse-tree (se--create-test-spans)))
 
-;; (defmacro should-all (pred &rest args)
-;;   (let ((arg (gensym)))
-;;     `(dolist (,arg ',args)
-;;        (should (funcall ,pred ,arg)))))
-
-;; (defmacro should-none (pred &rest args)
-;;   (let ((arg (gensym)))
-;;     `(dolist (,arg ',args)
-;;        (should-not (funcall ,pred ,arg)))))
-
 (ert-deftest se-term-helpers ()
   "Test that term helper methods work."
   (let* ((span1 (se-new-span "L1" 1 10))
@@ -81,8 +71,8 @@
 		 (se-new-span "L1"  1 10)))))
 
 (ert-deftest se-parse-tree-regression2 ()
-  "Parse tree should not allow overlapping spans."
-  ;; Currently fails, debating if necessary test
+  "Parse tree should not allow overlapping spans. Failure \
+expected, unsure if test is needed."
   (let ((bad-span (se-new-span "" 19 21)))
     (should-not (se-create-parse-tree
 		 (cons bad-span (se--create-test-spans))))))
@@ -134,11 +124,3 @@
     (should-not (se-filter (lambda (term) (string= "L4" (se-term-name term))) tree))
     (should (= 3 (length (se-filter (lambda (term) (string= "L3" (se-term-name term))) tree))))
     ))
-
-(ert-deftest se-destructive-methods ()
-  "Test that destructive methods function."
-  ;; tests need to be written
-  ;; se-node-add-offset
-  ;; se-term-add-offset
-  ;; se-node-expand-to
-  )
