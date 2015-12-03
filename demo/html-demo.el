@@ -23,4 +23,3 @@
 
 (se-navi-define-key 'html-mode (kbd "c") #'se-html-parse-file)
 (se-navi-define-key 'html-mode (kbd "h") #'se-highlight)
-;; (se-navi-define-key 'html-mode (kbd "<tab>") #'se-mode-indent-buffer)
