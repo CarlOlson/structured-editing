@@ -1,7 +1,7 @@
 
 (defvar se-navi-keymaps nil
   "Association list for mapping major modes to navigation mode
-key bindings. Should not be accessed directly.")
+key bindings.  Should not be accessed directly.")
 
 (defvar se-navi-quit-on-change t
   "If non-nil, navigation mode will quit before a change is made
@@ -44,7 +44,7 @@ to the buffer.")
 	    (define-key map (kbd "<tab>") #'back-to-indentation)
 	    map)
   (when se-navigation-mode ;; activation
-    ;; setup major-mode specific keybindings
+    ;; setup major-mode specific key bindings
     (setq se-navi-current-keymap (se-navi-get-keymap major-mode))
     (make-local-variable 'minor-mode-overriding-map-alist)
     (push (cons 'se-navigation-mode se-navi-current-keymap)
@@ -62,25 +62,25 @@ to the buffer.")
   (se-navigation-mode -1))
 
 (defun se-navi-nothing ()
-  "Does nothing. Used in navigation mode keymaps."
+  "Does nothing.  Used in navigation mode keymaps."
   (interactive))
 
-(defun se-navi-define-key (MODE KEY DEF)
+(defun se-navi-define-key (mode key def)
   "When activating se-navigation mode in a buffer, activate some
 specific bindings for your major mode.
 
 MODE is a symbol to be matched to the value of `major-mode'.  KEY
 and DEF work the same as with `define-key'."
-  (let ((keymap (se-navi-get-keymap MODE)))
-    (define-key keymap KEY DEF)))
+  (let ((keymap (se-navi-get-keymap mode)))
+    (define-key keymap key def)))
 
-(defun se-navi-get-keymap (MODE)
+(defun se-navi-get-keymap (mode)
   "Returns navigation mode keymap associated with major mode
-MODE. Navigation mode keymaps will vary from usage of
+MODE.  Navigation mode keymaps will vary from usage of
 `se-navi-define-key'."
-  (or (cdr (assoc MODE se-navi-keymaps))
+  (or (cdr (assoc mode se-navi-keymaps))
       (let* ((keymap (make-sparse-keymap))
-	     (entry (cons MODE keymap)))
+	     (entry (cons mode keymap)))
 	(set-keymap-parent keymap se-navigation-mode-map)
 	(add-to-list 'se-navi-keymaps entry)
 	(cdr entry))))
@@ -94,14 +94,14 @@ MODE. Navigation mode keymaps will vary from usage of
     (when (search-forward "Se-Navigation" nil t)
       (push-button (1- (point))))))
 
-(defun se-navi-documentation-advice (ORIG FUNCTION &optional RAW)
-  "Advice for documentation. ORIG is the original `documentation'
-function. FUNCTION and RAW correspond to `documentation'
-arguments."
+(defun se-navi-documentation-advice (orig function &optional raw)
+  "Advice for documentation.  ORIG is the original
+`documentation' function.  FUNCTION and RAW correspond to
+`documentation' arguments."
   (cond
-   (RAW
-    (funcall ORIG FUNCTION RAW))
-   ((equal #'se-navigation-mode FUNCTION)
+   (raw
+    (funcall orig function raw))
+   ((equal #'se-navigation-mode function)
     ;; buffer defined in `describe-mode' in emacs >=21.1
     ;; using dynamic scoping is unwanted here, but most simple
     (with-current-buffer (if (boundp 'buffer) buffer (buffer-name))
@@ -111,7 +111,7 @@ arguments."
 	(regexp-quote "\\{se-navi-current-keymap}")
 	(documentation 'se-navigation-mode t)))))
    (t
-    (funcall ORIG FUNCTION RAW))))
+    (funcall orig function raw))))
 
 (if (fboundp #'advice-add)
     (advice-add 'documentation :around #'se-navi-documentation-advice))

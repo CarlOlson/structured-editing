@@ -7,15 +7,22 @@
 
 (make-variable-buffer-local
  (defvar se-mode-selected nil
-   "Variable for internal usage in se-mode."))
+   "The first element is the currently selected span. Most new
+methods shouldn't need to touch this variable.  See
+`se-mode-not-selected' for more information."))
 
 (make-variable-buffer-local
  (defvar se-mode-not-selected nil
-   "Variable for internal usage in se-mode."))
+   "Set by `se-mode-set-spans' with the path to the currently
+selected point.  Methods like `se-mode-expand-selected' pop
+elements into `se-mode-selected' to keep track of the currently
+selected span.  Most new methods shouldn't need to touch this
+variable."))
 
 (make-variable-buffer-local
  (defvar se-mode-parse-tree nil
-   "Variable for internal usage in se-mode."))
+   "Variable to hold constructed parse tree for `se-mode'
+methods."))
 
 (make-variable-buffer-local
  (defvar se-mode-inspect-hook nil
@@ -25,8 +32,9 @@
   "Holds last window `se-mode-popup-window' created.")
 
 (defvar se-mode-expand-skips-whitespace nil
-  "When non-nil uses `se-mode-skip-beginning-whitespace' before
-`se-mode-expand-selected'.")
+  "When non-nil, before expanding from `se-mode-expand-selected'
+move the point to the first non-whitespace character if the point
+is currently before that character.")
 
 (define-minor-mode se-mode
   "Toggle Structure Editing mode.
@@ -38,6 +46,7 @@
 	    map))
 
 (defun se-mode-selected ()
+  "Returns the currently selected span or nil."
   (first se-mode-selected))
 
 (defun se-mode-clear-selected ()
@@ -48,6 +57,8 @@
 	mark-active nil))
 
 (defun se-mode-set-spans ()
+  "Used by `se-mode' methods to set `se-mode-selected' and
+`se-mode-not-selected'."
   (unless mark-active
     (se-mode-clear-selected))
   (when (and (null se-mode-selected)
@@ -57,15 +68,18 @@
 	   (se-find-point-path (point) se-mode-parse-tree)))))
 
 (defun se-mode-mark-region (start end)
+  "Sets mark and point to cover region from START to END. Will be
+highlighted if `transient-mark-mode' is on."
   (goto-char start)
   (push-mark end t t))
 
 (defun se-mode-mark-term (term)
+  "Calls `se-mode-mark-region' with region covered by TERM."
   (se-mode-mark-region (se-term-start term) (se-term-end term)))
 
 (defun se-mode-skip-beginning-whitespace ()
   "Moves point forward to first non-whitespace character on
-current line. Point doesn't move if already past it."
+current line.  Point doesn't move if already past it."
   (interactive)
   (let (indentation)
     (save-excursion
@@ -74,9 +88,15 @@ current line. Point doesn't move if already past it."
     (when (> indentation (point))
       (goto-char indentation))))
 
+(defun se-mode-rewind-selected ()
+  "Push all elements from `se-mode-selected' back onto
+`se-mode-not-selected'."
+  (while (not (null se-mode-selected))
+    (push (pop se-mode-selected) se-mode-not-selected)))
+
 (defun se-mode-expand-selected ()
-  "In se-mode, selects smallest span around point. If a region is
-already selected, it is expanded to its parent region."
+  "Selects smallest span around point.  If a region is already
+selected, it is expanded to its parent region."
   (interactive)
   (when se-mode-expand-skips-whitespace
     (se-mode-skip-beginning-whitespace))
@@ -89,8 +109,8 @@ already selected, it is expanded to its parent region."
     (se-mode-mark-term (se-mode-selected)))))
 
 (defun se-mode-shrink-selected ()
-  "In se-mode, deselect current region. If a smaller region was
-previous selected, select it again."
+  "Deselect current region.  If a smaller region was previous
+selected, select it again."
   (interactive)
   (se-mode-set-spans)
   (when se-mode-selected
@@ -99,6 +119,9 @@ previous selected, select it again."
       (se-mode-mark-term (se-mode-selected))
     (se-mode-clear-selected)))
 
+;; This macro may be less readable than copied code, but it contains
+;; the reused code of `se-mode-previous' and `se-mode-next'.  Perhaps
+;; remove the macro in the future or think of a good abstraction.
 (cl-macrolet ((find (which)
   `(let ((selected (se-mode-selected))
 	(nodes (if se-mode-not-selected
@@ -140,29 +163,31 @@ previous selected, select it again."
   (unless (se-mode-select (se-mode-next))
     (message "Selected term has no next.")))
 
-(defun se-mode-select-name (NAME)
-  "Selects the first span named NAME. Starts at current node
+(defun se-mode-select-name (name)
+  "Selects the first span named NAME.  Starts at current node
 selection and moves through parents."
   (se-mode-set-spans)
-  (let ((found (cl-find NAME se-mode-not-selected :key #'se-term-name :test #'string=)))
+  (let ((found (cl-find name se-mode-not-selected :key #'se-term-name :test #'string=)))
     (when found
       (while (not (equal found (se-mode-selected)))
 	(se-mode-expand-selected))
       found)))
 
-(defun se-mode-goto-term (TERM)
+(defun se-mode-goto-term (term)
   "Centers window at start of TERM."
-  (goto-char (se-term-start TERM))
+  (goto-char (se-term-start term))
   (recenter-top-bottom))
 
-(defun se-mode-popup-window (BUFFER-OR-NAME TEXT)
+(defun se-mode-popup-window (buffer-or-name text)
+  "Creates a window to hold TEXT. Handles special options for
+setting up the window how `se-mode' wants it."
   (with-temp-buffer-window
-   BUFFER-OR-NAME
+   buffer-or-name
    '(display-buffer-below-selected
      . ((window-height . shrink-window-if-larger-than-buffer)))
    #'(lambda (window _) (setq se-mode-last-popup-window window))
-   (princ TEXT))
-  (with-current-buffer BUFFER-OR-NAME
+   (princ text))
+  (with-current-buffer buffer-or-name
     (special-mode)))
 
 (defun se-mode-inspect-destroy ()
@@ -172,9 +197,9 @@ selection and moves through parents."
     (quit-window t se-mode-last-popup-window)))
 
 (defun se-mode-inspect ()
-  "Should displays information on currently selected term. Uses
-default method when `se-mode-inspect-hook' is nil, otherwise
-evaluates hooks."
+  "Should displays information on currently selected term.  Uses
+default method (described in docs) when `se-mode-inspect-hook' is
+nil, otherwise evaluates hooks."
   (interactive)
   (se-mode-set-spans)
   (cond
@@ -187,12 +212,14 @@ evaluates hooks."
      "*se*"
      (se-mode-pretty-json (se-term-to-json (se-mode-selected)))))
    (:else
-    ;; buffer is killed to ensure feedback
+    ;; buffer is killed for feedback
     (when (get-buffer "*se*") (kill-buffer "*se*"))
     (run-hooks 'se-mode-inspect-hook)))
   (setq deactivate-mark nil))
 
 (defun se-mode-overlay-info-at (start &optional end)
+  "Returns the overlay info property in the region from START to
+END.  Looks only at START if END is nil."
   (let ((get-info (lambda (overlay)
 		    (overlay-get overlay 'info))))
     (apply #'append
@@ -200,6 +227,8 @@ evaluates hooks."
 			      (overlays-at start))))))
 
 (defun se-mode-pretty-json (json)
+  "Prints a table in a more human readable form. Does not handle
+recursion or anything other than key-value pairs."
   (when json
     (let (max fstr)
       (loop for (key . value) in json
@@ -212,6 +241,7 @@ evaluates hooks."
 	    finally (return (apply #'concat lines))))))
 
 (defun se-term-to-json (term)
+  "Converts a term to JSON."
   (append
    `((name . ,(se-term-name term))
      (start . ,(se-term-start term))

@@ -41,7 +41,7 @@
   (should (se-term-end (se--create-test-tree))))
 
 (ert-deftest se-last-span-regression ()
-  "should not reach reach max eval depth"
+  "should not reach `max-lisp-eval-depth'"
   (should (se-last-span (se--create-test-tree)))
   )
 
@@ -71,7 +71,7 @@
 		 (se-new-span "L1"  1 10)))))
 
 (ert-deftest se-parse-tree-regression2 ()
-  "Parse tree should not allow overlapping spans. Failure \
+  "Parse tree should not allow overlapping spans.  Failure \
 expected, unsure if test is needed."
   (let ((bad-span (se-new-span "" 19 21)))
     (should-not (se-create-parse-tree

@@ -13,15 +13,15 @@
      (:constructor se-new-node (parent children)))
      parent children)
 
-(defun se-create-spans (LIST)
-  "Creates a list of spans from a list of lists. Each sub list
+(defun se-create-spans (list)
+  "Creates a list of spans from a list of lists.  Each sub list
 with elements corresponding to `so-new-span' arguments."
   (cl-labels ((new-span (lst) (apply #'se-new-span lst)))
-    (mapcar #'new-span LIST)))
+    (mapcar #'new-span list)))
 
 (defun se-flatten (tree)
   "Flattens a tree of nodes, spans, and lists into a single list
-of spans. This keeps the order of elements but is inefficient."
+of spans.  This keeps the order of elements but is inefficient."
   (typecase tree
     (null)
     (se-span
@@ -35,9 +35,8 @@ of spans. This keeps the order of elements but is inefficient."
 	   finally (return (apply #'append nodes))))))
 
 (defun se-as-spans (term)
-  "se-* methods favor returning nodes instead of
-spans. `se-as-spans' will convert to a list of spans
-instead. This will not flatten `term'."
+  "se-* methods favor returning nodes instead of spans.  This
+method will create a list of spans from TERM."
   (typecase term
     (se-span term)
     (se-node
@@ -46,30 +45,35 @@ instead. This will not flatten `term'."
      (mapcar #'se-as-spans term))))
 
 (defun se-first-span (term)
+  "Returns the first span of TERM."
   (typecase term
     (se-span term)
     (se-node (se-first-span (se-node-parent term)))
-    (cons (se-first-span (first term)))	;; make work with sequences
+    (cons (se-first-span (first term)))
     (t (signal 'wrong-type-argument '(term)))))
 
 (defun se-last-span (term)
+  "Returns the last span of TERM."
   (typecase term
     (se-span term)
     (se-node
      (if (se-node-children term)
 	 (se-last-span (se-node-children term))
        (se-last-span (se-node-parent term))))
-    (cons ;; make work with sequences
+    (cons
      (se-last-span (first (last term))))
     (t (signal 'wrong-type-argument '(term)))))
 
 (defun se-term-name (term)
+  "Returns the first named span of TERM."
   (se-span-name (se-first-span term)))
 
 (defun se-term-start (term)
+  "Returns the first position of TERM."
   (se-span-start (se-first-span term)))
 
 (defun se-term-end (term)
+  "Returns the last position of TERM."
   (typecase term
     (se-span
      (se-span-end term))
@@ -79,24 +83,25 @@ instead. This will not flatten `term'."
      (se-term-end (first (last term))))))
 
 (defun se-term-length (term)
+  "Returns the length of TERM."
   (- (se-term-end term)
      (se-term-start term)))
 
 (defun se-point-in-term-p (point term)
-  "Checks if `point' is contained within the spans of
-`term'. Intervals are treated as [start, end)."
+  "Checks if POINT is contained within the spans of TERM.
+Intervals are treated as [start, end)."
   (se-between point (se-term-start term) (1- (se-term-end term))))
 
 (defun se-term-equal-p (term1 term2)
-  "Compares the start and end points of `term1' and `term2'. This
+  "Compares the start and end points of TERM1 and TERM2.  This
 should be what equality generally means for terms."
   (and
    (equal (se-term-start term1) (se-term-start term2))
    (equal (se-term-end term1) (se-term-end term2))))
 
 (defun se-term-before-p (a b)
-  "Checks if span `a' should come before `b'. A span spanning 1
-to 100 would be before 1 to 20 because it encapsulates it."
+  "Checks if span A should come before B.  A span spanning 1 to
+100 would be before 1 to 20 because it encapsulates it."
   (let ((a-start (se-term-start a))
 	(b-start (se-term-start b)))
   (or
@@ -109,9 +114,9 @@ to 100 would be before 1 to 20 because it encapsulates it."
        (se-term-end b))))))
 
 (defun se-term-child-p (child parent)
-  "Checks if `child' should be encapsulated by `parent'. The
-bounds of `child' should be inside the bounds of `parent'.
-Returns true if `child' and `parent' have the same bounds."
+  "Checks if CHILD should be encapsulated by PARENT.  The bounds
+of CHILD should be inside the bounds of PARENT.  Returns true
+when CHILD and PARENT have the same bounds."
   (and
    (>= (se-term-start child)
        (se-term-start parent))
@@ -119,31 +124,31 @@ Returns true if `child' and `parent' have the same bounds."
        (se-term-end parent))))
 
 (defun se-create-parse-tree (lst)
-  "Forms a tree from span information. This will change the
-state of spans to be sorted. Returns nil if data is ill
+  "Forms a tree from span information.  This will change the
+state of spans to be sorted.  Returns nil if data is ill
 formatted."
   ;; `copy-list' could be used; however, it isn't expected a user will
   ;; reuse a span list (or care if it becomes sorted).
   (let ((len (length lst))
 	(spans (sort lst #'se-term-before-p))
 	(parents nil))
-    (se-sorted-spans-to-tree)))
+    (se--sorted-spans-to-tree)))
 
-(defun se-sorted-spans-to-tree ()
+(defun se--sorted-spans-to-tree ()
   (cond
    ((null spans) nil)
    ((or (null parents)
 	(se-term-child-p (first spans) (first parents)))
     (push (pop spans) parents)
     (cons
-     (se-new-node (first parents) (se-sorted-spans-to-tree))
-     (se-sorted-spans-to-tree)))
+     (se-new-node (first parents) (se--sorted-spans-to-tree))
+     (se--sorted-spans-to-tree)))
    (:else
     (pop parents)
     nil)))
 
 (defun se-find-point (point tree)
-  "Finds the deepest node in `tree' that contains `point'."
+  "Finds the deepest node in TREE that contains POINT."
   (typecase tree
     (se-node
      (when (se-point-in-term-p point (se-node-parent tree))
@@ -153,9 +158,9 @@ formatted."
      (se-map-1 (se-curry #'se-find-point point) tree))))
 
 (defun se-find-point-path (point tree)
-  "Finds a series of nodes in `tree' containing `point'. Returns
-a list containing nodes with the former elements as parents of
-the latter."
+  "Finds a series of nodes in TREE containing POINT.  Returns a
+list containing nodes with the former elements as parents of the
+latter."
   (typecase tree
     (se-node
      (when (se-point-in-term-p point (se-node-parent tree))
@@ -165,8 +170,8 @@ the latter."
      (se-map-1 (se-curry #'se-find-point-path point) tree))))
 
 (defun se-find-span (span tree)
-  "Finds a node in `tree' with parent span equal to
-`span'. Returns `nil' if no node matches."
+  "Finds a node in TREE with `se-node-parent' equal to SPAN.
+Returns nil if no node matches."
   (typecase tree
     (se-node
      (if (equal span (se-node-parent tree))
@@ -176,10 +181,9 @@ the latter."
      (se-map-1 (se-curry #'se-find-span span) tree))))
 
 (defun se-find-span-path (span tree)
-  "Finds a series of nodes in `tree' containing each other ending
-with a node with parent equal to `span'. Returns a list
-containing nodes with the former elements as parents of the
-latter. Returns `nil' if no node matches."
+  "Finds path to SPAN inside TREE.  Returns a list containing nodes with
+the former elements as parents of the latter.  Returns nil if no
+node matches."
   (typecase tree
     (se-node
      (cond
@@ -194,8 +198,8 @@ latter. Returns `nil' if no node matches."
 
 ;; dead code
 (defun se-find-after (term tree)
-  "Collects all nodes in `tree' after reaching `term'. The node
-of `term' isn't kept, nor its children."
+  "Collects all nodes in TREE after reaching TERM.  The node of
+TERM isn't kept, nor its children."
   (typecase tree
     (se-node
      (if (se-term-equal-p term tree)
@@ -209,19 +213,18 @@ of `term' isn't kept, nor its children."
 			      (cons second nodes)))))))
 
 ;; dead code
-(defun se-filter (pred tree)
-  "Filters spans, nodes, and trees. `pred' should accept a single
-term, if `nil' is returned the node isn't kept. A list of nodes
-is returned. If a parent node is removed, children are still
-tested. Elements guaranteed to be in reverse order."
+(defun se-filter (predicate tree)
+  "Filters spans, nodes, and trees.  PREDICATE should accept a
+single term.  Returns a constructed list of nodes (or spans)
+where PREDICATE returned a non-nil value."
   (let (acc)
     (cl-labels
 	((helper
 	  (tree) (typecase tree
 		   (se-span
-		    (when (funcall pred tree) (push tree acc)))
+		    (when (funcall predicate tree) (push tree acc)))
 		   (se-node
-		    (when (funcall pred tree)
+		    (when (funcall predicate tree)
 		      (push tree acc))
 		    (helper (se-node-children tree)))
 		   (cons
@@ -229,16 +232,16 @@ tested. Elements guaranteed to be in reverse order."
       (helper tree)
       acc)))
 
-(defun se-mapc (FUNCTION TERM)
+(defun se-mapc (function term)
   "Apply FUNCTION to each span in TERM for side effects only."
-  (typecase TERM
+  (typecase term
     (se-span
-     (funcall FUNCTION TERM))
+     (funcall function term))
     (se-node
-     (se-mapc FUNCTION (se-node-parent TERM))
-     (se-mapc FUNCTION (se-node-children TERM)))
+     (se-mapc function (se-node-parent term))
+     (se-mapc function (se-node-children term)))
     (cons
-     (dolist (node TERM)
-       (se-mapc FUNCTION node)))))
+     (dolist (node term)
+       (se-mapc function node)))))
 
 (provide 'se)

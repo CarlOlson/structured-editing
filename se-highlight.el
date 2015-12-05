@@ -3,41 +3,48 @@
 
 (make-variable-buffer-local
  (defvar se-highlight-font-map nil
-   "Should be a mapping of faces or an abreviated font-lock
-face (function-name, variable-name, keyword, comment, type,
-constant, string, etc) as symbols. The cdr should be a list of
-se-span names to give that face."))
+   "Should be a mapping of faces or an abbreviated font-lock face
+as symbols.
+
+Example: 'function-name for `font-lock-function-name-face'
+
+The cdr should be a list of se-span names that should have that
+face.
+
+Example: '(function-name . (\"defun\" \"defuns\"))"))
 
 (defun se-highlight ()
+  "Highlights current buffer based on the
+`se-highlight-font-map'.  This will deactivate `font-lock-mode'."
   (interactive)
   (when se-highlight-font-map
     (let ((modified (buffer-modified-p)))
       (font-lock-mode -1)
-      (se-mapc #'se-highlight-term se-mode-parse-tree)
+      (se-mapc #'se-highlight--term se-mode-parse-tree)
       (set-buffer-modified-p modified))))
 
-(defun se-highlight-term (TERM)
-  (let ((name (se-term-name TERM))
-	(start (se-term-start TERM))
-	(end (se-term-end TERM))
+(defun se-highlight--term (term)
+  (let ((name (se-term-name term))
+	(start (se-term-start term))
+	(end (se-term-end term))
 	(face
 	 (loop for (face . names) in se-highlight-font-map
-	       when (member (se-span-name TERM) names)
+	       when (member (se-span-name term) names)
 	       do (return face))))
     (when face
       (put-text-property start end 'face (se-highlight-to-face face) nil))))
 
-(defun se-highlight-to-face (FACE)
+(defun se-highlight-to-face (face)
   "Returns font lock face symbol abbreviated by FACE if exists,
 otherwise returns FACE."
-  (let ((orig FACE))
-    (when (symbolp FACE)
-      (setq FACE (symbol-name FACE)))
-    (if (not (stringp FACE))
+  (let ((orig face))
+    (when (symbolp face)
+      (setq face (symbol-name face)))
+    (if (not (stringp face))
 	orig
-      (setq FACE (intern (concat "font-lock-" FACE "-face")))
-      (if (and (boundp FACE)
-	       (symbol-value FACE))
-	  FACE orig))))
+      (setq face (intern (concat "font-lock-" face "-face")))
+      (if (and (boundp face)
+	       (symbol-value face))
+	  face orig))))
 
 (provide 'se-highlight)
