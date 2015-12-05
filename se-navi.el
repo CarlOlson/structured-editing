@@ -16,9 +16,10 @@ to the buffer.")
     ;; all printable characters
     (suppress-keymap keymap t)
     ;; tab, backspace, enter
-    (define-key keymap (kbd "<tab>") #'se-navi-nothing)
-    (define-key keymap (kbd "DEL") #'se-navi-nothing)
-    (define-key keymap (kbd "RET") #'se-navi-nothing)
+    (define-key keymap (kbd "<tab>")       #'se-navi-nothing)
+    (define-key keymap (kbd "<backspace>") #'se-navi-nothing)
+    (define-key keymap (kbd "<delete>")    #'se-navi-nothing)
+    (define-key keymap (kbd "<return>")    #'se-navi-nothing)
     ;; prevent quoted inserts
     (define-key keymap [remap quoted-insert] #'se-navi-nothing)
     keymap)
