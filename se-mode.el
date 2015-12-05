@@ -63,11 +63,6 @@
 (defun se-mode-mark-term (term)
   (se-mode-mark-region (se-term-start term) (se-term-end term)))
 
-(defun se-mode-update (term)
-  (let ((path (se-find-span-path term se-mode-parse-tree)))
-    (setq se-mode-selected nil
-	  se-mode-not-selected (reverse path))))
-
 (defun se-mode-skip-beginning-whitespace ()
   "Moves point forward to first non-whitespace character on
 current line. Point doesn't move if already past it."
@@ -127,7 +122,9 @@ previous selected, select it again."
   "Updates selection path and selects region."
   (se-mode-set-spans)
   (when term
-    (se-mode-update term)
+    (let ((path (se-find-span-path term se-mode-parse-tree)))
+      (setq se-mode-selected nil
+	    se-mode-not-selected (reverse path)))
     (se-mode-expand-selected)
     t))
 
