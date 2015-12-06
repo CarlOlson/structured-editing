@@ -186,7 +186,7 @@ setting up the window how `se-mode' wants it."
    '(display-buffer-below-selected
      . ((window-height . shrink-window-if-larger-than-buffer)))
    #'(lambda (window _) (setq se-mode-last-popup-window window))
-   (princ text))
+   (princ (or text "")))
   (with-current-buffer buffer-or-name
     (special-mode)))
 
@@ -202,6 +202,11 @@ default method (described in docs) when `se-mode-inspect-hook' is
 nil, otherwise evaluates hooks."
   (interactive)
   (se-mode-set-spans)
+  (when (get-buffer "*se*")
+    ;; buffer is killed for feedback
+    (se-mode-inspect-destroy)
+    ;; redisplay to flash buffer
+    (redisplay))
   (cond
    ((null (se-mode-selected))
     (se-mode-popup-window
@@ -212,8 +217,6 @@ nil, otherwise evaluates hooks."
      "*se*"
      (se-mode-pretty-json (se-term-to-json (se-mode-selected)))))
    (:else
-    ;; buffer is killed for feedback
-    (when (get-buffer "*se*") (kill-buffer "*se*"))
     (run-hooks 'se-mode-inspect-hook)))
   (setq deactivate-mark nil))
 
