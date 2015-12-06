@@ -18,10 +18,13 @@ Example: '(function-name . (\"defun\" \"defuns\"))"))
 `se-highlight-font-map'.  This will deactivate `font-lock-mode'."
   (interactive)
   (when se-highlight-font-map
-    (let ((modified (buffer-modified-p)))
+    (let ((modified (buffer-modified-p))
+	  (navi-on se-navigation-mode))
       (font-lock-mode -1)
       (se-mapc #'se-highlight--term se-mode-parse-tree)
-      (set-buffer-modified-p modified))))
+      (set-buffer-modified-p modified)
+      (when navi-on
+	(se-navigation-mode 1)))))
 
 (defun se-highlight--term (term)
   (let ((name (se-term-name term))
