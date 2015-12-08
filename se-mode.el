@@ -31,7 +31,7 @@ methods."))
 (defvar se-mode-last-popup-window nil
   "Holds last window `se-mode-popup-window' created.")
 
-(defvar se-mode-expand-skips-whitespace nil
+(defvar se-mode-expand-skips-whitespace t
   "When non-nil, before expanding from `se-mode-expand-selected'
 move the point to the first non-whitespace character if the point
 is currently before that character.")
