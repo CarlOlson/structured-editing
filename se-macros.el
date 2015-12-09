@@ -1,40 +1,40 @@
 
-(defmacro se-create-mode (name parent &rest body)
+(defmacro se-create-mode (prefix parent &optional docstring &rest body)
   "A macro for defining structured editing based modes.  This
-macro should contain best practices simply at the cost of
-customization.
+macro should contain best practices at the cost of customization.
 
-NAME should be your mode's name, properly capitalized.
+PREFIX should be the mode's name, properly capitalized.  PREFIX
+in lowercase is used as a namespace.  The created mode can be
+activated by PREFIX-mode, all lower case.
 PARENT should be either nil or a mode to derive the new mode
 from.
+DOCSTRING is an optional string to document your mode.  It is
+highly recommend you do not leave this out.
 BODY should contain any code to be executed when the mode starts.
 It is expected that `se-inf-start' is called.
 
 Example:
-  (se-create-mode \"Ruby\" ruby-mode
-    (se-inf-start ...))"
+  (se-create-mode \"se-Ruby\" ruby-mode
+    \"A structured editing based mode for Ruby files.\"
+    (se-inf-start ...))
+  => se-ruby-mode"
   (declare (indent 2) (debug t))
   (cl-macrolet ((idf (&rest args)
 		     `(intern (downcase (format ,@args)))))
     `(progn
        (define-derived-mode
-	 ,(idf "se-%s-mode" name)
+	 ,(idf "%s-mode" prefix)
 	 ,(or parent
 	      ;; keep emacs version <24 compatability
 	      (if (fboundp 'prog-mode) 'prog-mode 'fundamental-mode))
-	 ,(format "se-%s" name)
-	 ,(format "Major mode for %s files." name)
+	 ,(format "%s" prefix)
+	 ,docstring
+	 ,@body
 	 (se-mode)
 	 (add-hook 'se-navigation-mode-hook
-		   ',(idf "se-%s-parse-file" name) nil t)
-	 ,@body)
-
-       (if (not (fboundp ',(idf "%s-mode" name)))
-	   (defalias
-	     ',(idf "%s-mode" name)
-	     ',(idf "se-%s-mode" name)))
+		   ',(idf "%s-parse-file" prefix) nil t))
        
-       (defun ,(idf "se-%s-parse-file" name) ()
+       (defun ,(idf "%s-parse-file" prefix) ()
 	 "Only parses when navigation mode is active. This prevents
 the navigation mode hook from calling `se-inf-parse-file' when
 deactivating."
