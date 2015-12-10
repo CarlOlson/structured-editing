@@ -1,45 +1,93 @@
-
 * About
 This is a basis for building Emacs modes that utilize parse
 information in order to better edit and navigate code.
 
+CEDET and Paredit are similar, but se-based modes attempt to be easy
+to implement.  Se-based modes are suitable for new languages more than
+Java; however, in cases like Java one may use se-mode as a minor mode
+and may still enjoy all the advantages.
+
+Documentation best read in Emacs org-mode.
+
 * Documentation
 ** Terminology
+<<<se-mode>>> While the git repo is called structured-editing, the
+general name for this package is se-mode.  This includes the mode
+named se-mode, but much more as well.
+
 <<<point>>> A point is a single integer value corresponding to a
-position in a buffer. Points in buffers begin at one.
+position in a buffer.  Points in buffers begin at one.
 
-<<<span>>> A label, a start, and end point of a syntactic region. End
-points are exclusive. A span may also contain extra information.
+<<<span>>> A label or name, a start, and end point of a syntactic
+region.  End points are exclusive.  A span may also contain extra
+information.
 
-<<<node>>> A parent span and a list of children spans. The parent span
-should encapsulate all children spans. The children spans should be
-ordered.
+<<<node>>> A parent span and a list of children spans.  The parent
+span should encapsulate all children spans.  The children spans should
+be ordered.
 
 <<<parse tree>>> A tree structure created as nodes from span
-information. Starts as either a node or list of nodes. `nil' is
+information.  Starts as either a node or list of nodes.  `nil' is
 considered an empty parse tree.
 
-<<<term>>> A term is a span, node, or list of nodes. Parse trees are
+<<<term>>> A term is a span, node, or list of nodes.  Parse trees are
 by definition a subset, but think of terms as the contents of parse
-trees. Points are not terms.
+trees.  Points are not terms.
+
+** Expected Skills
+One should be familiar with looking up documentation with `C-h f', all
+useful functions have been documented.  When reading this in Emacs
+org-mode it is possible follow links with `C-c C-o'.  It may be
+helpful to get more information on [[info:elisp#Modes][modes]] and [[info:elisp#Processes][processes]] by consulting
+the [[info:Elisp#Top][Elisp manual]].
+
+** Local Variables and Hooks
+Most customization in se-mode comes from [[info:elisp#Buffer-Local%20Variables][buffer local variables]] and
+using [[info:elisp#Hooks][hooks]] effectively.  Both of these topics are covered in depth in
+the [[info:elisp#Top][Elisp manual]].  It should be noted [[elisp:(progn%20(describe-function%20#'add-hook)%20nil)][add-hook]] can modify only the
+buffer local hook.
+
+Customizing new modes through buffer local variables is important in
+order to keep compatibility with other modes.  There may be multiple
+se-based modes running at the same time, changing a variable
+carelessly could ruin other modes.
+
+** Selection Example
+The methods inside [[file:se.el][se.el]] are for manipulating parse trees.  The
+methods inside [[file:se-mode.el][se-mode.el]] are the application of [[file:se.el][se.el]] methods to
+manipulate the buffer.
+
+To properly use se-mode methods the [[file:se-mode.el::defvar se-mode-parse-tree][se-mode-parse-tree]] variable must
+have current information about the buffer.  It is expected that code
+is parsed upon entering [[file:se-navi.el::define-minor-mode se-navigation-mode][se-navigation-mode]].  Using a method only in
+navigation mode is a good way to not worry about having a current
+parse tree.  If many modifications occur, [[file:se-mode.el::defmacro%20se-mode-progn][se-mode-progn]] may be used.
+
+A common behavior is to select an enclosing region.  There is a
+function to help with that, [[file:se-mode.el::defun se-mode-select-name][se-mode-select-name]].  The name given is
+the label of the span.  In the following example demonstrates this:
+
+#+BEGIN_SRC emacs-lisp
+  (defun se-ruby-select-method ()
+    "Select the current method."
+    (interactive)
+    (or (se-mode-select-name "def")
+        (se-mode-select-name "defs")))
+
+  ;; bind it to navigation mode only during the se-ruby-mode major mode
+  (se-navi-define-key 'se-ruby-mode (kbd "m") #'se-ruby-select-method)
+#+END_SRC
 
 ** Quickstart Derived Mode
 *** Loading the Library
 Add the following code to your `~/.emacs' file to automatically load
 the se-mode files.
-#+BEGIN_SRC
-(let ((se-path "<PATH-TO-SE>"))
-  (add-to-list 'load-path se-path)
-  (add-to-list 'load-path (concat se-path "/json.el")))
+
+#+BEGIN_SRC emacs-lisp
+  (let ((se-path "<PATH-TO-SE>"))
+    (add-to-list 'load-path se-path)
+    (add-to-list 'load-path (concat se-path "/json.el")))
 #+END_SRC
-*** Methods of Interest
-When viewed in Emacs, using `C-h f' on each line will bring up
-documentation.
-- define-minor-mode
-- define-key
-- start-process
-- se-inf-start
-- se-inf-stop
 *** Template Minor Mode
 #+BEGIN_SRC emacs-lisp
 (define-minor-mode my-se-mode
@@ -83,15 +131,15 @@ optional but expected to be valid JSON. `error' should contain any
 error message you want displayed to the user. The following are two
 examples:
 
-#+BEGIN_SRC json
-{
-  "spans":[["span1",1,100],
-           ["span2",1,30,{"type":"method"}]]
-}
+#+BEGIN_SRC js
+  {
+      "spans":[["span1",1,100],
+               ["span2",1,30,{"type":"method"}]]
+  }
 #+END_SRC
 
-#+BEGIN_SRC json
-{
-  "error":"Unable to open file."
-}
+#+BEGIN_SRC js
+  {
+      "error":"Unable to open file."
+  }
 #+END_SRC
