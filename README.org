@@ -39,7 +39,7 @@ One should be familiar with looking up documentation with `C-h f', all
 useful functions have been documented.  When reading this in Emacs
 org-mode it is possible follow links with `C-c C-o'.  It may be
 helpful to get more information on [[info:elisp#Modes][modes]] and [[info:elisp#Processes][processes]] by consulting
-the [[info:Elisp#Top][Elisp manual]].
+the [[info:Elisp#Top][Elisp manual]] (see also the introduction to [[info:eintr#Top][programming in Emacs Lisp]]).
 
 ** Local Variables and Hooks
 Most customization in se-mode comes from [[info:elisp#Buffer-Local%20Variables][buffer local variables]] and
