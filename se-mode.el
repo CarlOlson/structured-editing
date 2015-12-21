@@ -36,6 +36,9 @@ methods."))
 move the point to the first non-whitespace character if the point
 is currently before that character.")
 
+(defvar se-mode-debug t
+  "Log debug information to buffer *se-log*.")
+
 (define-minor-mode se-mode
   "Toggle Structure Editing mode.
 \\{se-mode-map}"
@@ -71,7 +74,8 @@ is currently before that character.")
   "Sets mark and point to cover region from START to END. Will be
 highlighted if `transient-mark-mode' is on."
   (goto-char start)
-  (push-mark end t t))
+  (push-mark end t t)
+  (setq deactivate-mark nil))
 
 (defun se-mode-mark-term (term)
   "Calls `se-mode-mark-region' with region covered by TERM."
@@ -250,5 +254,41 @@ recursion or anything other than key-value pairs."
      (start . ,(se-term-start term))
      (end . ,(se-term-end term)))
    (se-span-data (se-first-span term))))
+
+(defmacro se-mode-progn (&rest body)
+  "Evaluates BODY forms, ensures that there is a currenty
+`se-mode-parse-tree', `se-mode-selected', and
+`se-mode-not-selected'.  To ensure that multiple commands are
+executed together use a `progn' or similar statement in BODY."
+  (declare (indent 0) (debug t))
+  (let (newbody)
+    (dolist (expr body)
+      ;; call our helper function before each form
+      (push '(se-mode--progn-check-h) newbody)
+      (push expr newbody))
+    (setq newbody (reverse newbody)) ;; order is backwards
+    `(progn
+       (unwind-protect
+	   (let (se-progn-changed)
+	     (add-hook 'first-change-hook #'se-mode--progn-change-h nil t)
+	     ,@newbody)
+	 (remove-hook 'first-change-hook #'se-mode--progn-change-h t)))))
+
+(defun se-mode--progn-change-h ()
+  "Helper function for `se-mode-progn'."
+  (setq se-progn-changed t))
+
+(defun se-mode--progn-check-h ()
+  "Helper function for `se-mode-progn'."
+  (setq se-progn-changed t)
+  (when se-progn-changed
+    (se-inf-parse-and-wait)
+    (setq se-progn-changed nil)))
+
+(defun se-mode-log (fmt &rest args)
+  "Logs a message for debugging purposes."
+  (when se-mode-debug
+    (with-current-buffer (get-buffer-create "*se-log*")
+      (insert (apply #'format fmt args) "\n"))))
 
 (provide 'se-mode)

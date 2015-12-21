@@ -23,6 +23,11 @@ response given as only argument.  If `se-inf-response-is-json' is
 non-nil the response is parsed as JSON first."))
 
 (make-variable-buffer-local
+ (defvar se-inf-response-finished nil
+   "Set to true after a response has been recieved and
+`se-inf-response-hook' is executed."))
+
+(make-variable-buffer-local
  (defvar se-inf-parse-hook (list #'se-inf-save-if-modified #'se-inf-remove-overlays)
    "Functions to be evaluated before parse request."))
 
@@ -64,11 +69,13 @@ be terminated with a new line. Calls FN or
 `se-inf-process'."
   (condition-case err
       (with-current-buffer closure
-	(if se-inf-response-is-json
-	    (let* ((json-array-type 'list)
-		   (json (json-read-from-string response)))
-	      (run-hook-with-args 'se-inf-response-hook json))
-	  (run-hook-with-args 'se-inf-response-hook response)))
+	(unwind-protect
+	    (if se-inf-response-is-json
+		(let* ((json-array-type 'list)
+		       (json (json-read-from-string response)))
+		  (run-hook-with-args 'se-inf-response-hook json))
+	      (run-hook-with-args 'se-inf-response-hook response))
+	  (setq se-inf-response-finished t)))
     (error
      (message "%s" (error-message-string err)))))
 
@@ -78,6 +85,7 @@ request unless `se-inf-parse-hook' is non-nil.  Uses the current
 buffer's file unless FILE is non-nil."
   (interactive)
   (run-hooks 'se-inf-parse-hook)
+  (setq se-inf-response-finished nil)
   (se-inf-ask (or file (buffer-file-name))))
 
 (defun se-inf-save-if-modified ()
@@ -146,5 +154,22 @@ buffer's file unless FILE is non-nil."
 
 (if (fboundp #'advice-add)
     (advice-add #'save-buffers-kill-emacs :around #'se-inf-kill-emacs-advice))
+
+(defun se-inf-parse-and-wait ()
+  "Send a parse request to the current process and wait for a
+response.  Raises an error if `se-mode-parse-tree' is nil after
+the response is processed or on user inturruption."
+  (setq se-mode-parse-tree nil)
+  (se-inf-parse-file)
+  (while (and (null se-inf-response-finished)
+	      (not (input-pending-p)))
+    (sleep-for 0.01))
+  (cond
+   ((input-pending-p)
+    (error "Interrupted by user input."))
+   ((null se-mode-parse-tree)
+    (error "Null parse tree.")))
+  (se-mode-clear-selected)
+  (se-mode-set-spans))
 
 (provide 'se-inf)
