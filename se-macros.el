@@ -35,9 +35,10 @@ Example:
 		   ',(idf "%s-parse-file" prefix) nil t))
        
        (defun ,(idf "%s-parse-file" prefix) ()
-	 "Only parses when navigation mode is active. This prevents
-the navigation mode hook from calling `se-inf-parse-file' when
-deactivating."
+	 "Only parses when navigation mode is active.  This
+prevents the navigation mode hook from calling
+`se-inf-parse-file' when deactivating.  Most often one should use
+`se-inf-parse-file' instead."
 	 (when se-navigation-mode
 	   (se-inf-parse-file))))))
 

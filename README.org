@@ -10,6 +10,30 @@ and may still enjoy all the advantages.
 Documentation best read in Emacs org-mode.
 
 * Documentation
+** Expected Skills
+One should be familiar with looking up documentation with `C-h f', all
+useful functions have been documented.  When reading this in Emacs
+org-mode, it is possible follow links with `C-c C-o'.  It may be
+helpful to get more information on [[info:elisp#Modes][modes]] and [[info:elisp#Processes][processes]] by consulting
+the [[info:Elisp#Top][Elisp manual]] (see also the introduction to [[info:eintr#Top][programming in Emacs
+Lisp]]).
+
+** Overview
+The purpose of the project is to make taking advantage of parse
+information simple.  While se-mode is modular, it is expected that one
+follow the precedent as much as possible.  The following paragraph
+will be written as if there is one way se-modes work, but everything
+is able to be changed through variables and hooks.
+
+A se-based mode starts a process that Emacs communicates with through
+standard I/O.  Emacs will send a newline terminated file name to the
+process.  The process will send back a newline terminated response
+with parse information formatted as JSON.  This information is used to
+construct a parse tree for se-mode to use.  With a parse tree se-mode
+can offer code navigation and manipulation features.
+
+The expected protocol specifics are explained [[Expected%20Protocol][here]].
+
 ** Terminology
 <<<se-mode>>> While the git repo is called structured-editing, the
 general name for this package is se-mode.  This includes the mode
@@ -34,102 +58,75 @@ considered an empty parse tree.
 by definition a subset, but think of terms as the contents of parse
 trees.  Points are not terms.
 
-** Expected Skills
-One should be familiar with looking up documentation with `C-h f', all
-useful functions have been documented.  When reading this in Emacs
-org-mode it is possible follow links with `C-c C-o'.  It may be
-helpful to get more information on [[info:elisp#Modes][modes]] and [[info:elisp#Processes][processes]] by consulting
-the [[info:Elisp#Top][Elisp manual]] (see also the introduction to [[info:eintr#Top][programming in Emacs Lisp]]).
+<<<JSON>>> JavaScript Object Notation, a human readable and writable
+format.
 
 ** Local Variables and Hooks
 Most customization in se-mode comes from [[info:elisp#Buffer-Local%20Variables][buffer local variables]] and
 using [[info:elisp#Hooks][hooks]] effectively.  Both of these topics are covered in depth in
-the [[info:elisp#Top][Elisp manual]].  It should be noted [[elisp:(progn%20(describe-function%20#'add-hook)%20nil)][add-hook]] can modify only the
-buffer local hook.
+the [[info:elisp#Top][Elisp manual]].  It should be noted [[elisp:(progn%20(describe-function%20#'add-hook)%20nil)][add-hook]] is able to make the
+change buffer local, this should be done when able.
 
-Customizing new modes through buffer local variables is important in
-order to keep compatibility with other modes.  There may be multiple
+Customizing new modes through buffer local variables is important for
+keeping compatibility with other modes.  There may be multiple
 se-based modes running at the same time, changing a variable
 carelessly could ruin other modes.
 
-** Selection Example
-The methods inside [[file:se.el][se.el]] are for manipulating parse trees.  The
-methods inside [[file:se-mode.el][se-mode.el]] are the application of [[file:se.el][se.el]] methods to
-manipulate the buffer.
-
-To properly use se-mode methods the [[file:se-mode.el::defvar se-mode-parse-tree][se-mode-parse-tree]] variable must
-have current information about the buffer.  It is expected that code
-is parsed upon entering [[file:se-navi.el::define-minor-mode se-navigation-mode][se-navigation-mode]].  Using a method only in
-navigation mode is a good way to not worry about having a current
-parse tree.  If many modifications occur, [[file:se-mode.el::defmacro%20se-mode-progn][se-mode-progn]] may be used.
-
-A common behavior is to select an enclosing region.  There is a
-function to help with that, [[file:se-mode.el::defun se-mode-select-name][se-mode-select-name]].  The name given is
-the label of the span.  In the following example demonstrates this:
-
-#+BEGIN_SRC emacs-lisp
-  (defun se-ruby-select-method ()
-    "Select the current method."
-    (interactive)
-    (or (se-mode-select-name "def")
-        (se-mode-select-name "defs")))
-
-  ;; bind it to navigation mode only during the se-ruby-mode major mode
-  (se-navi-define-key 'se-ruby-mode (kbd "m") #'se-ruby-select-method)
-#+END_SRC
-
-** Quickstart Derived Mode
+** Quick Start Major Mode
 *** Loading the Library
 Add the following code to your `~/.emacs' file to automatically load
 the se-mode files.
 
 #+BEGIN_SRC emacs-lisp
-  (let ((se-path "<PATH-TO-SE>"))
+  (let ((se-path "<PATH-TO-SE-DIRECTORY>")) ;; change to correct path
     (add-to-list 'load-path se-path)
     (add-to-list 'load-path (concat se-path "/json.el")))
 #+END_SRC
-*** Template Minor Mode
+
+*** Creating a Major Mode
+The code first:
+
 #+BEGIN_SRC emacs-lisp
-(define-minor-mode my-se-mode
-  "Documentation."
-  :init-value nil
-  :lighter " my-se"
-  :keymap (make-keymap)
-  (when my-se-mode
+  (require 'se-mode)
+  (eval-when-compile (require 'se-macros))
+
+  (se-create-mode "se-Ruby" ruby-mode
+    "A structured editing based mode for Ruby files."
     (se-inf-start
-      (start-process "my-se-mode" "*my-se-mode*"
-        "java" "-cp" ".;/opt/myparser" "MyParser")))
-  (unless my-se-mode
-    (se-inf-stop)))
-(define-key my-se-mode-map (kbd "M-s") #'se-navigation-mode)
+     (or (get-buffer-process "*se-ruby-mode*") ;; reuse existing process
+         (start-process "se-ruby-mode" "*se-ruby-mode*"
+                        "irb" "--inf-ruby-mode" "-r" se-ruby-program-name))))
 #+END_SRC
-*** Expanding the Template
-Se-modes can interact with inferior processes to get span
-information. A set of helper commands are inside `se-inf.el'. However,
-crawling through source is unnecessary, sane defaults have already
-been set. Just call `se-inf-start' with the process object returned
-from `start-process'. This can be seen in the template above.
 
-The template defined above uses the already defined keymap for
-`se-mode'. To be useful you need to set `se-mode-parse-tree' to a
-parse tree. This can be done automatically from using se-inf. Just use
-the hotkey `c' from within `se-navigation-mode'.
+This demonstrates the preferred way of creating major modes.
+[[file:se-macros.el::defmacro%20se-create-mode][se-create-mode]] is a macro that contains the best practices for
+creating an se-based mode.  By using =se-create-macro= changes to the
+se-mode library will not break se-modes.
 
-*** Se-inf Expected Protocol
-- All responses are valid JSON
-- Each response is one line terminated by a newline character
+=se-create-mode= expects a block of code to setup your mode; the only
+expectation is the setup of your process, preferably by passing a
+process to [[file:se-inf.el::defun%20se-inf-start][se-inf-start]].  One should read the documentation for both
+of these for a better understanding.
+
+=se-create-mode= does three things at the start of your mode: it
+evaluates your code block, starts the se-mode minor mode, and adds a
+parse function to =se-navigation-mode-hook=.  The minor mode provides
+the `M-s' hotkey to start =se-navigation-mode=.  The parse function is
+evaluated at the start of navigation mode to ensure current parse
+information.
+
+*** Expected Protocol
 - Each request is one line terminated by a newline character
+- Each response is one line terminated by a newline character
+- All responses are valid JSON
 - The default parse request is just the file name
 
-**** Default Response
 The expect response from the default parse request is a [[http://json.org/][JSON]]
-object. JSON was chosen because of the wide support, yet simplicity to
-build procedurally. Certain name/value pairs have predefined
-behavior. `spans' should contain an array of spans as arrays. A span
-has the pattern [label, start, end, extra]. The fourth element is
-optional but expected to be valid JSON. `error' should contain any
-error message you want displayed to the user. The following are two
-examples:
+object. JSON was chosen because of the wide support and simplicity to
+build. Certain key-value pairs have predefined behavior. =spans=
+should contain an array of spans as arrays. A span has the pattern
+[label, start, end, extra]. The fourth element is optional but
+expected to be valid JSON.
 
 #+BEGIN_SRC js
   {
@@ -138,8 +135,117 @@ examples:
   }
 #+END_SRC
 
+=error= should contain any error message you want displayed to the
+user.
+
 #+BEGIN_SRC js
   {
       "error":"Unable to open file."
   }
 #+END_SRC
+
+=error-span= can contain a single span of where an error happened.
+The error will be highlighted for the user.
+
+#+BEGIN_SRC js
+  {
+      "error":"Unable to parse fully.",
+      "error-span":["error",32,64]
+  }
+#+END_SRC
+
+To add new behaviors on certain key-value pairs add functions to the
+[[file:se-inf.el::defvar%20se-inf-response-hook][se-inf-response-hook]] with =add-hook=.  Functions will be given one
+parameter, the parse JSON object as an [[info:elisp#Association%20Lists][association list]].  The [[New%20Parse%20Behavior%20Example][Parse
+Behavior Example]] shows how to write an extension.
+
+** Selection Example
+The methods inside [[file:se.el][se.el]] are for manipulating parse trees.  The
+methods inside [[file:se-mode.el][se-mode.el]] are applications of =se.el= methods that
+manipulate the buffer.
+
+To properly use =se-mode.el=, the [[file:se-mode.el::defvar se-mode-parse-tree][se-mode-parse-tree]] variable must
+have current information about the buffer.  It is expected that code
+is parsed upon entering [[file:se-navi.el::define-minor-mode se-navigation-mode][se-navigation-mode]].  Using a method only in
+navigation mode is a good way to ensure a current parse tree.
+
+A common behavior is to select an enclosing region.  There is a
+function to help with that, [[file:se-mode.el::defun se-mode-select-name][se-mode-select-name]].  The function's name
+parameter is the label of the span.  The following example
+demonstrates this:
+
+#+BEGIN_SRC emacs-lisp
+  (defun se-ruby-select-method ()
+    "Select the current method."
+    (interactive)
+    (or (se-mode-select-name "def")
+        (se-mode-select-name "defs")))
+
+  (se-navi-define-key 'se-ruby-mode (kbd "m") #'se-ruby-select-method)
+#+END_SRC
+
+This example also shows the usage of [[file:se-navi.el::defun%20se-navi-define-key][se-navi-define-key]].
+=se-navi-define-key= should be used whenever adding key bindings to
+navigation-mode.  Navigation mode is intended to be shared by many
+se-based modes, using =se-navi-define-key= allows keys to be defined
+per major mode (unlike =define-key=).
+
+This example is only suitable for use in navigation mode, to allow
+usage anywhere surround parse tree dependent code with a [[file:se-mode.el::defmacro%20se-mode-progn][se-mode-progn]]
+call:
+
+#+BEGIN_SRC emacs-lisp
+  (defun se-ruby-select-method ()
+    "Select the current method."
+    (interactive)
+    (se-mode-progn
+     (or (se-mode-select-name "def")
+         (se-mode-select-name "defs"))))
+
+  (define-key se-ruby-mode-map (kbd "C-c m") #'se-ruby-select-method)
+#+END_SRC
+
+Now =se-ruby-select-method= can be called anytime.  =se-mode-progn=
+ensures that the parse tree is current after every evaluated enclosing
+statement.  There are only two catches: the file must be in a parsable
+state and the user must wait for possibly many parses.
+
+This is acceptable, but [[file:se-inf.el::defun%20se-inf-parse-and-wait][se-inf-parse-and-wait]] may be used if one wants
+more control over parsing.
+
+** Parse Behavior Example
+One common features is the evaluation of arbitrary bits of code.  To
+do this in an se-based mode one must add a new request and a new parse
+behavior.  The following code shows how a new request can be made:
+
+#+BEGIN_SRC emacs-lisp
+  (defun cl-eval-expr (expr)
+    "Evaluates combinatory logic expression."
+    (interactive "MEval: ") ;; M prefix asks for strings
+    (se-inf-ask (concat "EVAL\t" expr)))
+
+  (define-key cl-mode-map (kbd "C-c C-x") #'cl-eval-expr)
+#+END_SRC
+
+[[file:se-inf.el::defun%20se-inf-ask][se-inf-ask]] sends a string to the current process, appending a new line
+if not already new line terminated.  It is best to stick to this
+convention.  Once a response is returned it is parsed as JSON and
+passed to the [[file:se-inf.el::defvar%20se-inf-response-hook][se-inf-response-hook]] functions.  For this example, one
+might do the following:
+
+#+BEGIN_SRC emacs-lisp
+  (defun cl-process-result (json)
+    (let ((msg (cdr (assoc 'result json))))
+      (se-mode-popup-window "*cl-result*" msg)))
+
+  (se-create-mode "CL" nil
+    ;; body removed
+    (add-hook 'se-inf-response-hook #'cl-process-result nil t))
+#+END_SRC
+
+This example shows the best way to add code to =se-inf-response-hook=,
+in the body of =se-create-mode=.  Doing it there ensures that you can
+make the modification buffer local.  It should be noted that lambdas
+can be passed to =add-hook=, but shouldn't.  Lambdas don't allow for
+functions to be removed with =remove-hook=.  This is important to
+allow users the freedom to customize.

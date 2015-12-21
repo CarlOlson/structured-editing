@@ -70,7 +70,7 @@ to the buffer.")
 specific bindings for your major mode.
 
 MODE is a symbol to be matched to the value of `major-mode'.  KEY
-and DEF work the same as with `define-key'."
+and DEF work the same as `define-key'."
   (let ((keymap (se-navi-get-keymap mode)))
     (define-key keymap key def)))
 
