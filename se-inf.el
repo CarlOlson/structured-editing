@@ -118,17 +118,22 @@ buffer's file unless FILE is non-nil."
       (message "Error: %s" msg))))
 
 (defun se-inf-get-error-span (json)
-  "Returns possible error span from default formatted JSON."
-  (let ((info (cdr (assoc 'error-span json))))
-    (when info
-      (apply #'se-new-span info))))
+  "Returns possible error spans from default formatted JSON."
+  (let ((data (cdr (assoc 'error-span json))))
+    (if (consp (car data))
+	(mapcar (lambda (span) (apply #'se-new-span span)) data)
+      (apply #'se-new-span data))))
 
 (defun se-inf-process-error-span (json)
-  "Highlights the error span found in JSON."
-  (let ((span (se-inf-get-error-span json)))
-    (when span
-      (se-inf-error-overlay span)
-      (se-mode-goto-term span))))
+  "Highlights the error spans found in JSON."
+  (let ((data (se-inf-get-error-span json)))
+    (cond
+     ((se-span-p data)
+      (se-inf-error-overlay data)
+      (se-mode-goto-term data))
+     (t
+      (mapc #'se-inf-error-overlay data)
+      (se-mode-goto-term (car data))))))
 
 (defun se-inf-remove-overlays (&rest args)
   "Removes all overlays from the current buffer."

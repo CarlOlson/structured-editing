@@ -144,8 +144,8 @@ user.
   }
 #+END_SRC
 
-=error-span= can contain a single span of where an error happened.
-The error will be highlighted for the user.
+=error-span= can contain a single span or list of spans of where
+errors happened.  The errors will be highlighted for the user.
 
 #+BEGIN_SRC js
   {
