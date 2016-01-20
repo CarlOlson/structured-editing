@@ -212,11 +212,11 @@ TERM isn't kept, nor its children."
 	   do (return (append (se-find-after term first)
 			      (cons second nodes)))))))
 
-;; dead code
 (defun se-filter (predicate tree)
   "Filters spans, nodes, and trees.  PREDICATE should accept a
 single term.  Returns a constructed list of nodes (or spans)
-where PREDICATE returned a non-nil value."
+where PREDICATE returned a non-nil value.  Returned list
+preserves order."
   (let (acc)
     (cl-labels
 	((helper
@@ -230,7 +230,7 @@ where PREDICATE returned a non-nil value."
 		   (cons
 		    (dolist (term tree) (helper term))))))
       (helper tree)
-      acc)))
+      (nreverse acc))))
 
 (defun se-mapc (function term)
   "Apply FUNCTION to each span in TERM for side effects only."

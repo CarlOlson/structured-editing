@@ -124,3 +124,10 @@ expected, unsure if test is needed."
     (should-not (se-filter (lambda (term) (string= "L4" (se-term-name term))) tree))
     (should (= 3 (length (se-filter (lambda (term) (string= "L3" (se-term-name term))) tree))))
     ))
+
+(ert-deftest se-filter-order ()
+  "should preserve order of results"
+  (let* ((tree (se--create-test-tree))
+	 (l3pred (lambda (term) (string= "L3" (se-term-name term))))
+	 (result (se-filter l3pred tree)))
+    (should (equal result (sort (copy-seq result) #'se-term-before-p)))))
