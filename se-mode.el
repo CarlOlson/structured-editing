@@ -48,6 +48,8 @@ is currently before that character.")
 	    (define-key map (kbd "M-s") #'se-navigation-mode)
 	    map))
 
+(make-obsolete 'se-mode nil)
+
 (defun se-mode-selected ()
   "Returns the currently selected span or nil."
   (first se-mode-selected))

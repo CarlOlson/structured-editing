@@ -30,7 +30,7 @@ Example:
 	 ,(format "%s" prefix)
 	 ,docstring
 	 ,@body
-	 (se-mode)
+	 (define-key ,(idf "%s-mode-map" prefix) (kbd "M-s") #'se-navigation-mode)
 	 (add-hook 'se-navigation-mode-hook
 		   ',(idf "%s-parse-file" prefix) nil t))
        
