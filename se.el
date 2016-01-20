@@ -82,6 +82,12 @@ method will create a list of spans from TERM."
     (cons
      (se-term-end (first (last term))))))
 
+(defun se-term-data (term)
+  "Returns the data of the first term."
+  (let ((span (se-first-span term)))
+    (when span
+      (se-span-data span))))
+
 (defun se-term-length (term)
   "Returns the length of TERM."
   (- (se-term-end term)
