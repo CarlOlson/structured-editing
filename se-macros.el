@@ -30,7 +30,9 @@ Example:
 	 ,(format "%s" prefix)
 	 ,docstring
 	 ,@body
-	 (define-key ,(idf "%s-mode-map" prefix) (kbd "M-s") #'se-navigation-mode)
+	 (unless (lookup-key ,(idf "%s-mode-map" prefix) (kbd "M-s"))
+	   ;; only bind if unbound
+	   (define-key ,(idf "%s-mode-map" prefix) (kbd "M-s") #'se-navigation-mode))
 	 (add-hook 'se-navigation-mode-hook
 		   ',(idf "%s-parse-file" prefix) nil t))
        
