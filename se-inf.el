@@ -120,14 +120,20 @@ buffer's file unless FILE is non-nil."
 (defun se-inf-get-error-span (json)
   "Returns possible error spans from default formatted JSON."
   (let ((data (cdr (assoc 'error-span json))))
-    (if (consp (car data))
-	(mapcar (lambda (span) (apply #'se-new-span span)) data)
-      (apply #'se-new-span data))))
+    (cond
+     ((or (null data)
+	  (< (length data) 3))
+      nil)
+     ((consp (car data))
+      (mapcar (lambda (span) (apply #'se-new-span span)) data))
+     (t
+      (apply #'se-new-span data)))))
 
 (defun se-inf-process-error-span (json)
   "Highlights the error spans found in JSON."
   (let ((data (se-inf-get-error-span json)))
     (cond
+     ((null data) nil)
      ((se-span-p data)
       (se-inf-error-overlay data)
       (se-mode-goto-term data))
