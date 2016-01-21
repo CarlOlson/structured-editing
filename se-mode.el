@@ -199,7 +199,7 @@ setting up the window how `se-mode' wants it."
 (defun se-mode-inspect-destroy ()
   "Suffix chosen to match default keybinding 'd'."
   (interactive)
-  (when se-mode-last-popup-window
+  (when (window-valid-p se-mode-last-popup-window)
     (quit-window t se-mode-last-popup-window)))
 
 (defun se-mode-inspect ()
