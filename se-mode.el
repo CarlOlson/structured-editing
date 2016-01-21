@@ -217,11 +217,11 @@ nil, otherwise evaluates hooks."
    ((null (se-mode-selected))
     (se-mode-popup-window
      "*se*"
-     (se-mode-pretty-json (se-mode-overlay-info-at (point)))))
+     (se-mode-pretty-print (se-mode-overlay-info-at (point)))))
    ((null se-mode-inspect-hook)
     (se-mode-popup-window
      "*se*"
-     (se-mode-pretty-json (se-term-to-json (se-mode-selected)))))
+     (se-mode-pretty-print (se-term-to-json (se-mode-selected)))))
    (:else
     (run-hooks 'se-mode-inspect-hook)))
   (setq deactivate-mark nil))
@@ -235,19 +235,33 @@ END.  Looks only at START if END is nil."
 	   (mapcar get-info (if end (overlays-in start end)
 			      (overlays-at start))))))
 
-(defun se-mode-pretty-json (json)
-  "Prints a table in a more human readable form. Does not handle
-recursion or anything other than key-value pairs."
-  (when json
-    (let (max fstr)
-      (loop for (key . value) in json
-	    maximizing (length (format "%s" key)) into maxlen
-	    finally (setq max maxlen))
-      (setq fstr (format "%%%ds:\t%%s\n" max))
-      (loop for (key . value) in json
-	    do (setq key (capitalize (format "%s" key)))
-	    collecting (format fstr key value) into lines
-	    finally (return (apply #'concat lines))))))
+(defun se-mode-pretty-print (data &optional depth)
+  "Recursively prints a table in a more human readable form."
+  (cond
+   ((and (consp data)
+	 (cl-every #'consp data))
+    ;; pairs
+    (se--pretty-pairs data (or depth 0)))
+   (t
+    ;; atoms
+    (format "%s" data))))
+
+(defun se--pretty-pairs (pairs depth)
+  (let (max fstr)
+    (loop for (key . value) in pairs
+	  maximizing (length (format "%s" key)) into maxlen
+	  finally (setq max maxlen))
+    (setq fstr (format "%%%ds:\t%%s\n" max))
+    (loop for (key . value) in pairs
+	  do (setq key (format "%s" key))
+	  collecting (format fstr key
+			     (se-mode-pretty-print value (+ max 9))) into lines
+	  finally (return (se--pretty-indent (apply #'concat lines) depth)))))
+
+(defun se--pretty-indent (text depth)
+  (mapconcat #'identity
+	     (split-string text "[\n]")
+	     (format "\n%s" (make-string depth ?\s))))
 
 (defun se-term-to-json (term)
   "Converts a term to JSON."
