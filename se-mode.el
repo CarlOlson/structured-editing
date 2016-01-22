@@ -22,7 +22,8 @@ variable."))
 (make-variable-buffer-local
  (defvar se-mode-parse-tree nil
    "Variable to hold constructed parse tree for `se-mode'
-methods."))
+methods.  Should normally only be accessed from the
+`se-mode-parse-tree' function."))
 
 (make-variable-buffer-local
  (defvar se-mode-inspect-hook nil
@@ -50,6 +51,16 @@ is currently before that character.")
 
 (make-obsolete 'se-mode nil)
 
+(define-error 'se-mode-nil-parse-tree
+  "Parse tree not set")
+
+(defun se-mode-parse-tree ()
+  "Returns the current parse tree if non-nil.  Otherwise, raises
+an error."
+  (if se-mode-parse-tree
+      se-mode-parse-tree
+    (signal 'se-mode-nil-parse-tree nil)))
+
 (defun se-mode-selected ()
   "Returns the currently selected span or nil."
   (first se-mode-selected))
@@ -70,7 +81,7 @@ is currently before that character.")
 	     (null se-mode-not-selected))
     (setq se-mode-not-selected
 	  (nreverse ;; non-destructive se methods should return new lists
-	   (se-find-point-path (point) se-mode-parse-tree)))))
+	   (se-find-point-path (point) (se-mode-parse-tree))))))
 
 (defun se-mode-mark-region (start end)
   "Sets mark and point to cover region from START to END. Will be
@@ -132,7 +143,7 @@ selected, select it again."
   `(let ((selected (se-mode-selected))
 	(nodes (if se-mode-not-selected
 		   (se-node-children (first se-mode-not-selected))
-		 se-mode-parse-tree)))
+		 (se-mode-parse-tree))))
     (loop for (prev next . rest) on nodes
 	  when (null next) return nil
 	  when (se-term-equal-p
@@ -151,7 +162,7 @@ selected, select it again."
   "Updates selection path and selects region."
   (se-mode-set-spans)
   (when term
-    (let ((path (se-find-span-path term se-mode-parse-tree)))
+    (let ((path (se-find-span-path term (se-mode-parse-tree))))
       (setq se-mode-selected nil
 	    se-mode-not-selected (reverse path)))
     (se-mode-expand-selected)
@@ -272,10 +283,10 @@ END.  Looks only at START if END is nil."
    (se-span-data (se-first-span term))))
 
 (defmacro se-mode-progn (&rest body)
-  "Evaluates BODY forms, ensures that there is a currenty
-`se-mode-parse-tree', `se-mode-selected', and
-`se-mode-not-selected'.  To ensure that multiple commands are
-executed together use a `progn' or similar statement in BODY."
+  "Evaluates BODY forms, ensures that se-mode variables (like the
+parse tree) stay current after every statement.  To ensure that
+multiple statements are executed together use a `progn' or
+similar statement in BODY."
   (declare (indent 0) (debug t))
   (let (newbody)
     (dolist (expr body)
