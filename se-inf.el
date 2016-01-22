@@ -36,6 +36,24 @@ non-nil the response is parsed as JSON first."))
    "Non-nil if `se-inf-process' should returns JSON.  See
 `se-inf-response-hook'."))
 
+(defvar se-inf-headers
+  (vector " Parsing |" " Parsing /" " Parsing -" " Parsing \\")
+  "A loop of strings to show while parsing is happening in the
+background.  Suppose to be similar to a hourglass.")
+
+(make-variable-buffer-local
+ (defvar se-inf-header-index 0
+   "Current index of the header loop."))
+
+(defvar se-inf-header-line-format
+  '(:eval (aref se-inf-headers (mod se-inf-header-index 4)))
+  "Format to set `header-line-format' to during background
+parsing.")
+
+(make-variable-buffer-local
+ (defvar se-inf-header-timer nil
+   "Stores active timer during background parsing."))
+
 (defun se-inf-start (proc &optional no-auto-kill)
   "Initialize necessary variables to use se-inf functions.
 Expects PROC to be the process returned from `start-process'.
@@ -75,6 +93,7 @@ be terminated with a new line. Calls FN or
 		       (json (json-read-from-string response)))
 		  (run-hook-with-args 'se-inf-response-hook json))
 	      (run-hook-with-args 'se-inf-response-hook response))
+	  (se-inf-header-timer-stop)
 	  (setq se-inf-response-finished t)))
     (error
      (message "%s" (error-message-string err)))))
@@ -84,6 +103,7 @@ be terminated with a new line. Calls FN or
 request unless `se-inf-parse-hook' is non-nil.  Uses the current
 buffer's file unless FILE is non-nil."
   (interactive)
+  (se-inf-header-timer-start)
   (run-hooks 'se-inf-parse-hook)
   (setq se-inf-response-finished nil)
   (se-inf-ask (or file (buffer-file-name))))
@@ -182,5 +202,28 @@ the response is processed or on user inturruption."
     (error "Null parse tree.")))
   (se-mode-clear-selected)
   (se-mode-set-spans))
+
+(defun se-inf-header-timer-start ()
+  "Starts timer to increment `se-inf-header-index' and update
+header mode line during background parsing.  Used to simulate a
+hourglass feature."
+  (when se-inf-header-timer
+    (cancel-timer se-inf-header-timer))
+  (setq header-line-format se-inf-header-line-format)
+  (lexical-let ((buffer (buffer-name)))
+    (setq se-inf-header-timer
+	  (run-with-timer 0 0.25
+			  (lambda ()
+			    (with-current-buffer buffer
+			      (incf se-inf-header-index)
+			      (force-mode-line-update)))))))
+
+(defun se-inf-header-timer-stop ()
+  "Stops the header timer in `se-inf-header-timer'.  See
+`se-inf-header-timer-start' for more information."
+  (when se-inf-header-timer
+    (cancel-timer se-inf-header-timer))
+  (setq header-line-format nil)
+  (force-mode-line-update))
 
 (provide 'se-inf)
