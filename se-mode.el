@@ -25,9 +25,8 @@ variable."))
 methods.  Should normally only be accessed from the
 `se-mode-parse-tree' function."))
 
-(make-variable-buffer-local
- (defvar se-mode-inspect-hook nil
-   "Evaluates hooks when `se-mode-inspect' is called."))
+(defvar se-mode-inspect-hook nil
+  "Evaluates hooks when `se-mode-inspect' is called.")
 
 (defvar se-mode-last-popup-window nil
   "Holds last window `se-mode-popup-window' created.")

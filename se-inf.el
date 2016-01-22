@@ -13,23 +13,21 @@ started with `start-process'."))
  (defvar se-inf-queue nil
    "Transaction queue for `se-inf-process'."))
 
-(make-variable-buffer-local
- (defvar se-inf-response-hook
-   (list #'se-inf-process-spans
-	 #'se-inf-process-error
-	 #'se-inf-process-error-span)
-   "Functions to be evaluated after response of `se-inf-ask',
+(defvar se-inf-response-hook
+  (list #'se-inf-process-spans
+	#'se-inf-process-error
+	#'se-inf-process-error-span)
+  "Functions to be evaluated after response of `se-inf-ask',
 response given as only argument.  If `se-inf-response-is-json' is
-non-nil the response is parsed as JSON first."))
+non-nil the response is parsed as JSON first.")
 
 (make-variable-buffer-local
  (defvar se-inf-response-finished nil
    "Set to true after a response has been recieved and
 `se-inf-response-hook' is executed."))
 
-(make-variable-buffer-local
- (defvar se-inf-parse-hook (list #'se-inf-save-if-modified #'se-inf-remove-overlays)
-   "Functions to be evaluated before parse request."))
+(defvar se-inf-parse-hook (list #'se-inf-save-if-modified #'se-inf-remove-overlays)
+  "Functions to be evaluated before parse request.")
 
 (make-variable-buffer-local
  (defvar se-inf-response-is-json t
