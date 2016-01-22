@@ -34,14 +34,18 @@ Example:
 	   ;; only bind if unbound
 	   (define-key ,(idf "%s-mode-map" prefix) (kbd "M-s") #'se-navigation-mode))
 	 (add-hook 'se-navigation-mode-hook
-		   ',(idf "%s-parse-file" prefix) nil t))
+		   ',(idf "%s-parse-file" prefix) nil t)
+	 (add-hook 'before-change-functions
+		   #'se-mode-push-parse-tree nil t))
        
        (defun ,(idf "%s-parse-file" prefix) ()
-	 "Only parses when navigation mode is active.  This
-prevents the navigation mode hook from calling
-`se-inf-parse-file' when deactivating.  Most often one should use
+	 "Only parses when navigation mode is active to prevent
+the navigation mode hook from calling `se-inf-parse-file' when
+deactivating.  Additionally, only parses when
+`se-mode-parse-tree' is nil.  Most often one should use
 `se-inf-parse-file' instead."
-	 (when se-navigation-mode
+	 (when (and se-navigation-mode
+		    (null se-mode-parse-tree))
 	   (se-inf-parse-file))))))
 
 (provide 'se-macros)

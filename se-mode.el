@@ -307,4 +307,16 @@ executed together use a `progn' or similar statement in BODY."
     (with-current-buffer (get-buffer-create "*se-log*")
       (insert (apply #'format fmt args) "\n"))))
 
+(defun se-mode-push-parse-tree (&rest _)
+  "Push undo information to restore the current
+`se-mode-parse-tree' at a later time.  Sets `se-mode-parse-tree'
+to nil.
+
+It is expected that se-modes will add this function to the
+`before-change-functions' hook (as `se-mode-create' does)."
+  (when se-mode-parse-tree
+    (push `(apply set . (se-mode-parse-tree ,se-mode-parse-tree))
+	  buffer-undo-list)
+    (setq se-mode-parse-tree nil)))
+
 (provide 'se-mode)
