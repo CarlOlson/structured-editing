@@ -54,6 +54,9 @@ parsing.")
  (defvar se-inf-header-timer nil
    "Stores active timer during background parsing."))
 
+(defvar se-inf-header-timer-interval 0.25
+  "Time in seconds between updating the header mode line.")
+
 (defun se-inf-start (proc &optional no-auto-kill)
   "Initialize necessary variables to use se-inf functions.
 Expects PROC to be the process returned from `start-process'.
@@ -212,7 +215,7 @@ hourglass feature."
   (setq header-line-format se-inf-header-line-format)
   (lexical-let ((buffer (buffer-name)))
     (setq se-inf-header-timer
-	  (run-with-timer 0 0.25
+	  (run-with-timer 0 se-inf-header-timer-interval
 			  (lambda ()
 			    (with-current-buffer buffer
 			      (incf se-inf-header-index)
