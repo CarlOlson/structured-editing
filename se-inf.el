@@ -55,16 +55,16 @@ parsing.")
 (defvar se-inf-header-timer-interval 0.25
   "Time in seconds between updating the header mode line.")
 
-(defun se-inf-start (proc &optional no-auto-kill)
+(defun se-inf-start (proc &optional query-on-exit)
   "Initialize necessary variables to use se-inf functions.
 Expects PROC to be the process returned from `start-process'.
 Should be called at the start of an `se-mode'.
 
-When NO-AUTO-KILL is nil the user will not be queried about PROC
+When QUERY-ON-EXIT is nil the user will not be queried about PROC
 still being active upon exiting emacs."
   (unless (process-get proc 'se-inf-queue)
     (process-put proc 'se-inf-queue (tq-create proc))
-    (process-put proc 'se-inf-auto-kill (not no-auto-kill)))
+    (set-process-query-on-exit-flag proc query-on-exit))
   (setq
    se-inf-process proc
    se-inf-queue (process-get proc 'se-inf-queue)))
@@ -175,17 +175,6 @@ buffer's file unless FILE is non-nil."
     (overlay-put overlay 'modification-hooks
 		 (list (lambda (overlay &rest args)
 			 (overlay-put overlay 'face nil))))))
-
-(defun se-inf-kill-emacs-advice (orig &optional arg)
-  "Don't query about killing processes if they have
-`se-inf-auto-kill' set to a non-nil value."
-  (let ((non-auto-kill-procs
-	 (cl-remove-if (lambda (proc) (process-get proc 'se-inf-auto-kill)) (process-list))))
-    (cl-letf (((symbol-function 'process-list) (lambda () non-auto-kill-procs)))
-      (funcall orig arg))))
-
-(if (fboundp #'advice-add)
-    (advice-add #'save-buffers-kill-emacs :around #'se-inf-kill-emacs-advice))
 
 (defun se-inf-parse-and-wait ()
   "Send a parse request to the current process and wait for a
