@@ -135,27 +135,30 @@ selected, select it again."
       (se-mode-mark-term (se-mode-selected))
     (se-mode-clear-selected)))
 
-;; This macro may be less readable than copied code, but it contains
-;; the reused code of `se-mode-previous' and `se-mode-next'.  Perhaps
-;; remove the macro in the future or think of a good abstraction.
-(cl-macrolet ((find (which)
-  `(let ((selected (se-mode-selected))
-	(nodes (if se-mode-not-selected
+(defun se-mode-find-sibling (fn)
+  "Specialized find function for `se-mode-previous' and
+`se-mode-next'."
+  (let ((nodes (if se-mode-not-selected
 		   (se-node-children (first se-mode-not-selected))
 		 (se-mode-parse-tree))))
-    (loop for (prev next . rest) on nodes
-	  when (null next) return nil
-	  when (se-term-equal-p
-		,(if (equal which 'prev) 'next 'prev)
-		selected) return ,which))))
+    (loop for (head . tail) on nodes
+	  when (apply fn head tail)
+	  return (cons head tail))))
 
-  (defun se-mode-previous ()
-    "Return the node before the currently selected one."
-    (find prev))
+(defun se-mode-previous ()
+  "Return the node before the currently selected one."
+  (when (se-mode-selected)
+    (nth 0 (se-mode-find-sibling
+	    (lambda (prev &optional next &rest _)
+	      (and next
+		   (se-term-equal-p next (se-mode-selected))))))))
 
-  (defun se-mode-next ()
-    "Return the node after the currently selected one."
-    (find next)))
+(defun se-mode-next ()
+  "Return the node after the currently selected one."
+  (when (se-mode-selected)
+    (nth 1 (se-mode-find-sibling
+	    (lambda (prev &rest _)
+	      (se-term-equal-p prev (se-mode-selected)))))))
 
 (defun se-mode-select (term)
   "Updates selection path and selects region."
