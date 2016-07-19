@@ -43,7 +43,11 @@ Example:
 the navigation mode hook from calling `se-inf-parse-file' when
 deactivating.  Additionally, only parses when
 `se-mode-parse-tree' is nil.  Most often one should use
-`se-inf-parse-file' instead."
+`se-inf-parse-file' instead.
+
+This function was created for use with
+`se-mode-push-parse-tree' (which should set `se-mode-parse-tree'
+to nil) in the `before-change-functions' hook."
 	 (when (and se-navigation-mode
 		    (null se-mode-parse-tree))
 	   (se-inf-parse-file))))))
