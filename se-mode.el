@@ -309,7 +309,6 @@ similar statement in BODY."
 
 (defun se-mode--progn-check-h ()
   "Helper function for `se-mode-progn'."
-  (setq se-progn-changed t)
   (when se-progn-changed
     (se-inf-parse-and-wait)
     (setq se-progn-changed nil)))
