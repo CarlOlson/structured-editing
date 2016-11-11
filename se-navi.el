@@ -41,6 +41,7 @@ to the buffer.")
 	    (define-key map (kbd "n") #'se-mode-select-next)
 	    (define-key map (kbd "h") #'se-navi-help)
 	    (define-key map (kbd "w") #'copy-region-as-kill)
+	    (define-key map (kbd "l") #'recenter-top-bottom)
 	    (define-key map (kbd "<tab>") #'back-to-indentation)
 	    map)
   (when se-navigation-mode ;; activation
